@@ -122,6 +122,14 @@ All colors MUST be HSL.
     background: linear-gradient(135deg, hsl(var(--gradient-blue-start)), hsl(var(--gradient-blue-end)));
   }
   
+  .gradient-purple {
+    background: linear-gradient(135deg, hsl(250 100% 65%), hsl(280 90% 55%));
+  }
+  
+  .gradient-sci-fi {
+    background: linear-gradient(135deg, hsl(210 100% 55%), hsl(280 90% 60%));
+  }
+  
   .shadow-soft {
     box-shadow: 0 4px 20px -2px hsl(var(--shadow-soft) / 0.15);
   }
@@ -130,7 +138,31 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px -5px hsl(var(--shadow-glow) / 0.3);
   }
   
+  .shadow-glow-blue {
+    box-shadow: 0 8px 32px -8px hsl(210 100% 50% / 0.4), 0 0 0 1px hsl(210 100% 50% / 0.1);
+  }
+  
+  .shadow-glow-purple {
+    box-shadow: 0 8px 32px -8px hsl(270 100% 60% / 0.4), 0 0 0 1px hsl(270 100% 60% / 0.1);
+  }
+  
+  .shadow-glow-pink {
+    box-shadow: 0 8px 32px -8px hsl(330 100% 60% / 0.4), 0 0 0 1px hsl(330 100% 60% / 0.1);
+  }
+  
+  .shadow-sci-fi {
+    box-shadow: 0 10px 40px -10px hsl(210 100% 50% / 0.3), 
+                0 0 0 1px hsl(210 100% 50% / 0.1),
+                inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  }
+  
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glass-effect {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 }
