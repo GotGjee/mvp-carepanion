@@ -3,21 +3,36 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, SkipForward, Globe, Coins } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Play, Pause, Globe, Coins, ChevronDown } from "lucide-react";
 
 // Mock data types
 interface AudioRecording {
   id: string;
   filename: string;
   duration: number;
+  timeAgo: string;
   status: "pending" | "labeled" | "skipped";
 }
 
 interface EmotionLabel {
   primary: string;
-  arousal: number;
-  valence: number;
-  dominance: number;
+  comfortLevel: number;
+  emotionalIntensity: number;
+  clarityOfSpeech: number;
+  appropriatenessForElderly: number;
+  perceivedEmpathy: number;
+  speakingRate: string;
+  genderPerceived: string;
+  agePerceived: string;
+  culturalFit: string;
+  accent: string;
 }
 
 const DataLabelingInterface = () => {
@@ -25,18 +40,28 @@ const DataLabelingInterface = () => {
   const [currentRecordingId, setCurrentRecordingId] = useState<string>("rec_001");
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string>("");
-  const [arousal, setArousal] = useState<number[]>([50]);
-  const [valence, setValence] = useState<number[]>([50]);
-  const [dominance, setDominance] = useState<number[]>([50]);
+  const [comfortLevel, setComfortLevel] = useState<number[]>([5]);
+  const [emotionalIntensity, setEmotionalIntensity] = useState<number[]>([5]);
+  const [clarityOfSpeech, setClarityOfSpeech] = useState<number[]>([5]);
+  const [appropriatenessForElderly, setAppropriatenessForElderly] = useState<number[]>([5]);
+  const [perceivedEmpathy, setPerceivedEmpathy] = useState<number[]>([5]);
+  const [speakingRate, setSpeakingRate] = useState<string>("slow");
+  const [genderPerceived, setGenderPerceived] = useState<string>("");
+  const [agePerceived, setAgePerceived] = useState<string>("");
+  const [culturalFit, setCulturalFit] = useState<string>("");
+  const [accent, setAccent] = useState<string>("");
+  const [filterValue, setFilterValue] = useState<string>("all");
 
   // Mock data - in real implementation, this would come from backend
   const recordings: AudioRecording[] = [
-    { id: "rec_001", filename: "conversation_001.wav", duration: 45, status: "pending" },
-    { id: "rec_002", filename: "conversation_002.wav", duration: 32, status: "pending" },
-    { id: "rec_003", filename: "conversation_003.wav", duration: 58, status: "labeled" },
+    { id: "rec_001", filename: "Voice Recording 1", duration: 4, timeAgo: "3 min.", status: "pending" },
+    { id: "rec_002", filename: "Voice Recording 2", duration: 4, timeAgo: "2 min.", status: "pending" },
+    { id: "rec_003", filename: "Voice Recording 3", duration: 4, timeAgo: "2 hours ago", status: "pending" },
+    { id: "rec_004", filename: "Voice Recording 4", duration: 4, timeAgo: "28 min ago", status: "labeled" },
+    { id: "rec_005", filename: "Voice Recording 5", duration: 4, timeAgo: "3 hours ago", status: "pending" },
   ];
 
-  const emotions = ["Calm", "Happy", "Sad", "Angry", "Fearful", "Surprised", "Neutral"];
+  const emotions = ["Calm", "Happy", "Sad", "Anxious", "Lonely"];
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
@@ -60,9 +85,16 @@ const DataLabelingInterface = () => {
 
     const label: EmotionLabel = {
       primary: selectedEmotion,
-      arousal: arousal[0],
-      valence: valence[0],
-      dominance: dominance[0],
+      comfortLevel: comfortLevel[0],
+      emotionalIntensity: emotionalIntensity[0],
+      clarityOfSpeech: clarityOfSpeech[0],
+      appropriatenessForElderly: appropriatenessForElderly[0],
+      perceivedEmpathy: perceivedEmpathy[0],
+      speakingRate,
+      genderPerceived,
+      agePerceived,
+      culturalFit,
+      accent,
     };
 
     console.log("Saving label:", label, "for recording:", currentRecordingId);
@@ -75,9 +107,16 @@ const DataLabelingInterface = () => {
     
     // Reset form
     setSelectedEmotion("");
-    setArousal([50]);
-    setValence([50]);
-    setDominance([50]);
+    setComfortLevel([5]);
+    setEmotionalIntensity([5]);
+    setClarityOfSpeech([5]);
+    setAppropriatenessForElderly([5]);
+    setPerceivedEmpathy([5]);
+    setSpeakingRate("slow");
+    setGenderPerceived("");
+    setAgePerceived("");
+    setCulturalFit("");
+    setAccent("");
   };
 
   const fetchNextAudioClip = async () => {
@@ -92,12 +131,30 @@ const DataLabelingInterface = () => {
     console.log("Fetching next audio clip...");
   };
 
-  const handleSkip = () => {
-    // TODO: Implement skip functionality
-    // - Mark current recording as "skipped"
-    // - Load next recording
-    // - Optionally send skip event to backend for analytics
-  };
+  // Simple waveform visualization component
+  const WaveformThumbnail = () => (
+    <div className="flex items-center gap-px h-8">
+      {Array.from({ length: 30 }).map((_, i) => (
+        <div
+          key={i}
+          className="w-0.5 bg-muted-foreground/30 rounded-full"
+          style={{ height: `${Math.random() * 100}%` }}
+        />
+      ))}
+    </div>
+  );
+
+  const WaveformDisplay = () => (
+    <div className="flex items-center justify-center gap-px h-16">
+      {Array.from({ length: 100 }).map((_, i) => (
+        <div
+          key={i}
+          className="w-1 bg-muted-foreground/40 rounded-full"
+          style={{ height: `${Math.random() * 100}%` }}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -108,86 +165,110 @@ const DataLabelingInterface = () => {
           
           <div className="flex items-center gap-6">
             {/* World ID Badge */}
-            <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
-              <Globe className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-secondary-foreground">World ID</span>
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-1.5 rounded-full">
+                <Globe className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">World ID</span>
             </div>
             
             {/* Token Balance */}
-            <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg">
-              <Coins className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-primary">1,250 CARE</span>
+            <div className="text-right">
+              <div className="text-lg font-bold text-foreground">1,250 CARE</div>
+              <div className="text-xs text-muted-foreground">0h Chain, Span 3dffB3c</div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="container mx-auto px-6 py-6">
+        <div className="grid grid-cols-12 gap-6">
           
           {/* Left Column - Recording List */}
-          <div className="lg:col-span-4">
-            <Card className="p-4 shadow-soft">
-              <h2 className="text-lg font-semibold mb-4 text-card-foreground">Audio Recordings</h2>
+          <div className="col-span-3">
+            <div className="space-y-4">
+              {/* Filter Dropdown */}
+              <Select value={filterValue} onValueChange={setFilterValue}>
+                <SelectTrigger className="w-full bg-card">
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Recordings</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="labeled">Labeled</SelectItem>
+                  <SelectItem value="skipped">Skipped</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Recording List */}
               <div className="space-y-2">
                 {recordings.map((recording) => (
                   <button
                     key={recording.id}
                     onClick={() => setCurrentRecordingId(recording.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-smooth ${
+                    className={`w-full text-left p-3 rounded-lg transition-smooth border ${
                       currentRecordingId === recording.id
-                        ? "bg-primary text-primary-foreground shadow-soft"
-                        : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+                        ? "bg-primary/5 border-primary"
+                        : "bg-card border-border hover:border-primary/50"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{recording.filename}</p>
-                        <p className="text-xs opacity-80">{recording.duration}s</p>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-12">
+                        <WaveformThumbnail />
                       </div>
-                      <Badge 
-                        variant={recording.status === "labeled" ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {recording.status}
-                      </Badge>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {recording.filename}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {recording.duration} sec · {recording.timeAgo}
+                        </p>
+                      </div>
                     </div>
                   </button>
                 ))}
               </div>
-            </Card>
+            </div>
           </div>
 
-          {/* Right Column - Labeling Form */}
-          <div className="lg:col-span-8">
+          {/* Center Column - Audio Player & Main Sliders */}
+          <div className="col-span-5">
             <Card className="p-6 shadow-soft">
-              <h2 className="text-xl font-semibold mb-6 text-card-foreground">Label Emotions</h2>
-              
-              {/* Audio Player */}
-              <div className="bg-secondary rounded-lg p-6 mb-6">
-                <div className="flex items-center justify-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handlePlayPause}
-                    className="h-12 w-12"
-                  >
-                    {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                  </Button>
-                  
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-1/3 transition-smooth" />
+              {/* Waveform Display */}
+              <div className="mb-6">
+                <WaveformDisplay />
+              </div>
+
+              {/* Recording Title */}
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
+                Voice Recording 1
+              </h2>
+
+              {/* Audio Player Controls */}
+              <div className="flex items-center gap-4 mb-8">
+                <Button
+                  variant="default"
+                  size="icon"
+                  onClick={handlePlayPause}
+                  className="h-12 w-12 rounded-full"
+                >
+                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                </Button>
+                
+                <div className="flex-1 flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground font-mono">0:04</span>
+                  <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary w-1/4 transition-smooth" />
                   </div>
-                  
-                  <span className="text-sm text-muted-foreground font-mono">00:15 / 00:45</span>
+                  <span className="text-sm text-muted-foreground font-mono">0:04</span>
                 </div>
               </div>
 
-              {/* Primary Emotion Selection */}
+              {/* Main Question */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-card-foreground">
-                  Primary Emotion
+                <label className="block text-sm font-medium mb-3 text-foreground">
+                  What do you feel?
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {emotions.map((emotion) => (
@@ -203,81 +284,275 @@ const DataLabelingInterface = () => {
                 </div>
               </div>
 
-              {/* Arousal Slider */}
+              {/* Comfort Level Slider */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-card-foreground">
-                  Arousal (Energy Level): <span className="text-primary font-semibold">{arousal[0]}%</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Comfort revel</label>
+                  <span className="text-sm font-semibold text-foreground">{comfortLevel[0]}</span>
+                </div>
                 <Slider
-                  value={arousal}
-                  onValueChange={setArousal}
-                  max={100}
+                  value={comfortLevel}
+                  onValueChange={setComfortLevel}
+                  max={10}
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Calm</span>
-                  <span>Excited</span>
-                </div>
               </div>
 
-              {/* Valence Slider */}
+              {/* Emotional Intensity Slider */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-card-foreground">
-                  Valence (Positivity): <span className="text-primary font-semibold">{valence[0]}%</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Emotional intensity</label>
+                  <span className="text-sm font-semibold text-foreground">{emotionalIntensity[0]}</span>
+                </div>
                 <Slider
-                  value={valence}
-                  onValueChange={setValence}
-                  max={100}
+                  value={emotionalIntensity}
+                  onValueChange={setEmotionalIntensity}
+                  max={10}
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Negative</span>
-                  <span>Positive</span>
-                </div>
               </div>
 
-              {/* Dominance Slider */}
+              {/* Clarity of Speech Slider */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-card-foreground">
-                  Dominance (Control): <span className="text-primary font-semibold">{dominance[0]}%</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Clarity of speech</label>
+                  <span className="text-sm font-semibold text-foreground">{clarityOfSpeech[0]}</span>
+                </div>
                 <Slider
-                  value={dominance}
-                  onValueChange={setDominance}
-                  max={100}
+                  value={clarityOfSpeech}
+                  onValueChange={setClarityOfSpeech}
+                  max={10}
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Submissive</span>
-                  <span>Dominant</span>
+              </div>
+
+              {/* Appropriateness for Elderly Hearing Slider */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Appropriateness for elderly hearing
+                  </label>
+                  <span className="text-sm font-semibold text-foreground">{appropriatenessForElderly[0]}</span>
+                </div>
+                <Slider
+                  value={appropriatenessForElderly}
+                  onValueChange={setAppropriatenessForElderly}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Additional Fields */}
+          <div className="col-span-4">
+            <Card className="p-6 shadow-soft">
+              {/* Top Emotion Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-3 text-foreground">
+                  What do you feel?
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {emotions.map((emotion) => (
+                    <Button
+                      key={emotion}
+                      variant={selectedEmotion === emotion ? "default" : "pill"}
+                      onClick={() => setSelectedEmotion(emotion)}
+                      size="sm"
+                    >
+                      {emotion}
+                    </Button>
+                  ))}
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handleSkip}
-                  className="gap-2"
-                >
-                  <SkipForward className="w-4 h-4" />
-                  Skip
-                </Button>
-                
-                <Button
-                  variant="default"
-                  onClick={handleSaveAndNext}
-                  disabled={!selectedEmotion}
-                  className="gap-2 shadow-soft hover:shadow-glow"
-                  size="lg"
-                >
-                  Save & Next
-                </Button>
+              {/* Comfort Level (duplicate for right side) */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Comfort level</label>
+                  <span className="text-sm font-semibold text-foreground">{comfortLevel[0]}</span>
+                </div>
+                <Slider
+                  value={comfortLevel}
+                  onValueChange={setComfortLevel}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
               </div>
+
+              {/* Emotional Intensity (duplicate) */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Emotional intensity</label>
+                  <span className="text-sm font-semibold text-foreground">{emotionalIntensity[0]}</span>
+                </div>
+                <Slider
+                  value={emotionalIntensity}
+                  onValueChange={setEmotionalIntensity}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Clarity of Speech (duplicate) */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Clarity of speech</label>
+                  <span className="text-sm font-semibold text-foreground">{clarityOfSpeech[0]}</span>
+                </div>
+                <Slider
+                  value={clarityOfSpeech}
+                  onValueChange={setClarityOfSpeech}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Appropriateness for Elderly (duplicate) */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Appropriateness for elderly hearing
+                  </label>
+                  <span className="text-sm font-semibold text-foreground">{appropriatenessForElderly[0]}</span>
+                </div>
+                <Slider
+                  value={appropriatenessForElderly}
+                  onValueChange={setAppropriatenessForElderly}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Perceived Empathy Slider */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">Perceived empathy</label>
+                  <span className="text-sm font-semibold text-foreground">{perceivedEmpathy[0]}</span>
+                </div>
+                <Slider
+                  value={perceivedEmpathy}
+                  onValueChange={setPerceivedEmpathy}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Speaking Rate */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Speaking rate
+                </label>
+                <div className="flex items-center gap-2">
+                  <Select value={speakingRate} onValueChange={setSpeakingRate}>
+                    <SelectTrigger className="flex-1 bg-background">
+                      <SelectValue placeholder="Select rate" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="slow">Slow</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="fast">Fast</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">Fast</span>
+                </div>
+              </div>
+
+              {/* Gender Perceived */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Gender perceived
+                </label>
+                <Select value={genderPerceived} onValueChange={setGenderPerceived}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="non-binary">Non-binary</SelectItem>
+                    <SelectItem value="unsure">Unsure</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Age Perceived */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Age perceived
+                </label>
+                <Select value={agePerceived} onValueChange={setAgePerceived}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select age range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="child">Child (0-12)</SelectItem>
+                    <SelectItem value="teen">Teen (13-19)</SelectItem>
+                    <SelectItem value="young-adult">Young Adult (20-35)</SelectItem>
+                    <SelectItem value="adult">Adult (36-55)</SelectItem>
+                    <SelectItem value="senior">Senior (56+)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Cultural Fit */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Cultural fit
+                </label>
+                <Select value={culturalFit} onValueChange={setCulturalFit}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select cultural fit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="very-appropriate">Very Appropriate</SelectItem>
+                    <SelectItem value="appropriate">Appropriate</SelectItem>
+                    <SelectItem value="neutral">Neutral</SelectItem>
+                    <SelectItem value="inappropriate">Inappropriate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Accent */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Accent
+                </label>
+                <Select value={accent} onValueChange={setAccent}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select accent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Accent</SelectItem>
+                    <SelectItem value="british">British</SelectItem>
+                    <SelectItem value="american">American</SelectItem>
+                    <SelectItem value="australian">Australian</SelectItem>
+                    <SelectItem value="asian">Asian</SelectItem>
+                    <SelectItem value="european">European</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Save Button */}
+              <Button
+                variant="default"
+                onClick={handleSaveAndNext}
+                disabled={!selectedEmotion}
+                className="w-full shadow-soft hover:shadow-glow"
+                size="lg"
+              >
+                Save & next
+              </Button>
             </Card>
           </div>
         </div>
