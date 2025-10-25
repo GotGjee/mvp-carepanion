@@ -10,7 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Play, Pause, Globe, Coins, ChevronDown } from "lucide-react";
+import { Play, Pause, ChevronDown } from "lucide-react";
+import UserProfileDropdown from "@/components/UserProfileDropdown";
+
+interface DataLabelingInterfaceProps {
+  walletAddress: string;
+  tokenBalance: number;
+  onLogout: () => void;
+}
 
 // Mock data types
 interface AudioRecording {
@@ -35,7 +42,7 @@ interface EmotionLabel {
   accent: string;
 }
 
-const DataLabelingInterface = () => {
+const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLabelingInterfaceProps) => {
   // State management
   const [currentRecordingId, setCurrentRecordingId] = useState<string>("rec_001");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -163,13 +170,11 @@ const DataLabelingInterface = () => {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Empathy Data Labeling</h1>
           
-          <div className="flex items-center gap-6">
-            {/* Token Balance */}
-            <div className="text-right">
-              <div className="text-lg font-bold text-foreground">1,250 CARE</div>
-              <div className="text-xs text-muted-foreground">0xAfC...06eA</div>
-            </div>
-          </div>
+          <UserProfileDropdown 
+            walletAddress={walletAddress}
+            tokenBalance={tokenBalance}
+            onLogout={onLogout}
+          />
         </div>
       </header>
 

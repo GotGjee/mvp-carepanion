@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/carepanion-logo.png";
 
 interface WalletConnectionGateProps {
-  onWalletConnected: () => void;
+  onWalletConnected: (userData: { address: string; balance: number }) => void;
 }
 
 // Placeholder function to fetch challenge from backend
@@ -56,107 +56,25 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
     setIsConnecting(true);
     
     try {
-      // Step 1: Connect Wallet
-      if (!publicKey) {
-        try {
-          await connect();
-        } catch (connectError) {
-          toast({
-            variant: "destructive",
-            title: "Connection Failed",
-            description: "Failed to connect wallet. Please try again.",
-          });
-          setIsConnecting(false);
-          return;
-        }
-      }
+      // 1. Create a hardcoded, dummy user object.
+      const mockUser = {
+        address: '5xAbc...789Yz', // A fake, truncated wallet address
+        balance: 1250 // A fake token balance
+      };
 
-      // Wait for publicKey to be available after connection
-      if (!publicKey) {
-        toast({
-          variant: "destructive",
-          title: "Wallet Not Connected",
-          description: "Please connect your wallet to continue.",
-        });
-        setIsConnecting(false);
-        return;
-      }
+      // 2. Add a TODO comment for future implementation.
+      // TODO: This is a mock login. Replace with real Solana Wallet Adapter and SIWS logic.
 
-      // Step 2: Fetch Challenge from Backend
-      let challengeMessage: string;
-      try {
-        challengeMessage = await fetchChallenge(publicKey.toBase58());
-      } catch (fetchError) {
-        toast({
-          variant: "destructive",
-          title: "Failed to Fetch Challenge",
-          description: "Unable to get authentication challenge from server.",
-        });
-        setIsConnecting(false);
-        return;
-      }
+      // Simulate loading delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Step 3: Sign the Message
-      if (!signMessage) {
-        toast({
-          variant: "destructive",
-          title: "Wallet Not Supported",
-          description: "Your wallet does not support message signing.",
-        });
-        setIsConnecting(false);
-        return;
-      }
+      toast({
+        title: "Login Successful",
+        description: `Welcome! Your balance: ${mockUser.balance} CARE`,
+      });
 
-      let signature: Uint8Array;
-      try {
-        const encodedMessage = new TextEncoder().encode(challengeMessage);
-        signature = await signMessage(encodedMessage);
-      } catch (signError) {
-        toast({
-          variant: "destructive",
-          title: "Signature Cancelled",
-          description: "You cancelled the signature request.",
-        });
-        setIsConnecting(false);
-        return;
-      }
-
-      // Step 4: Verify Signature with Backend
-      let verificationResult;
-      try {
-        verificationResult = await verifySignature(
-          challengeMessage,
-          signature,
-          publicKey.toBase58()
-        );
-      } catch (verifyError) {
-        toast({
-          variant: "destructive",
-          title: "Verification Failed",
-          description: "Failed to verify your signature with the server.",
-        });
-        setIsConnecting(false);
-        return;
-      }
-
-      // Step 5: Handle Login Success
-      if (verificationResult.success && verificationResult.user) {
-        // TODO: Store the JWT securely (e.g., in an httpOnly cookie)
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome! Your balance: ${verificationResult.user.balance} CARE`,
-        });
-        
-        // Notify parent component of successful login
-        onWalletConnected();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Authentication failed. Please try again.",
-        });
-      }
+      // 3. Immediately call the onWalletConnected prop to proceed.
+      onWalletConnected(mockUser);
       
     } catch (error) {
       console.error("Wallet login failed:", error);
