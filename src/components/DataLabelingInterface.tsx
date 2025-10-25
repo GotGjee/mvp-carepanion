@@ -54,11 +54,11 @@ const DataLabelingInterface = () => {
 
   // Mock data - in real implementation, this would come from backend
   const recordings: AudioRecording[] = [
-    { id: "rec_001", filename: "Voice Recording 1", duration: 4, timeAgo: "3 min.", status: "pending" },
-    { id: "rec_002", filename: "Voice Recording 2", duration: 4, timeAgo: "2 min.", status: "pending" },
-    { id: "rec_003", filename: "Voice Recording 3", duration: 4, timeAgo: "2 hours ago", status: "pending" },
-    { id: "rec_004", filename: "Voice Recording 4", duration: 4, timeAgo: "28 min ago", status: "labeled" },
-    { id: "rec_005", filename: "Voice Recording 5", duration: 4, timeAgo: "3 hours ago", status: "pending" },
+    { id: "rec_001", filename: "Voice Recording 1", duration: 4, timeAgo: "3 min ago", status: "pending" },
+    { id: "rec_002", filename: "Voice Recording 2", duration: 8, timeAgo: "2 min ago", status: "pending" },
+    { id: "rec_003", filename: "Voice Recording 3", duration: 12, timeAgo: "2 hours ago", status: "pending" },
+    { id: "rec_004", filename: "Voice Recording 4", duration: 30, timeAgo: "28 min ago", status: "labeled" },
+    { id: "rec_005", filename: "Voice Recording 5", duration: 90, timeAgo: "3 hours ago", status: "pending" },
   ];
 
   const emotions = ["Calm", "Happy", "Sad", "Anxious", "Lonely"];
@@ -164,18 +164,10 @@ const DataLabelingInterface = () => {
           <h1 className="text-2xl font-bold text-foreground">Empathy Data Labeling</h1>
           
           <div className="flex items-center gap-6">
-            {/* World ID Badge */}
-            <div className="flex items-center gap-2">
-              <div className="bg-primary/10 p-1.5 rounded-full">
-                <Globe className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-foreground">World ID</span>
-            </div>
-            
             {/* Token Balance */}
             <div className="text-right">
               <div className="text-lg font-bold text-foreground">1,250 CARE</div>
-              <div className="text-xs text-muted-foreground">0h Chain, Span 3dffB3c</div>
+              <div className="text-xs text-muted-foreground">0xAfC...06eA</div>
             </div>
           </div>
         </div>
@@ -265,86 +257,7 @@ const DataLabelingInterface = () => {
                 </div>
               </div>
 
-              {/* Main Question */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-foreground">
-                  What do you feel?
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {emotions.map((emotion) => (
-                    <Button
-                      key={emotion}
-                      variant={selectedEmotion === emotion ? "default" : "pill"}
-                      onClick={() => setSelectedEmotion(emotion)}
-                      size="sm"
-                    >
-                      {emotion}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comfort Level Slider */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Comfort revel</label>
-                  <span className="text-sm font-semibold text-foreground">{comfortLevel[0]}</span>
-                </div>
-                <Slider
-                  value={comfortLevel}
-                  onValueChange={setComfortLevel}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Emotional Intensity Slider */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Emotional intensity</label>
-                  <span className="text-sm font-semibold text-foreground">{emotionalIntensity[0]}</span>
-                </div>
-                <Slider
-                  value={emotionalIntensity}
-                  onValueChange={setEmotionalIntensity}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Clarity of Speech Slider */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Clarity of speech</label>
-                  <span className="text-sm font-semibold text-foreground">{clarityOfSpeech[0]}</span>
-                </div>
-                <Slider
-                  value={clarityOfSpeech}
-                  onValueChange={setClarityOfSpeech}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Appropriateness for Elderly Hearing Slider */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">
-                    Appropriateness for elderly hearing
-                  </label>
-                  <span className="text-sm font-semibold text-foreground">{appropriatenessForElderly[0]}</span>
-                </div>
-                <Slider
-                  value={appropriatenessForElderly}
-                  onValueChange={setAppropriatenessForElderly}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-              </div>
+              
             </Card>
           </div>
 
