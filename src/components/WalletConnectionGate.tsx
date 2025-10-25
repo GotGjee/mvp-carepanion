@@ -1,37 +1,170 @@
 import { useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Globe, Lock, Heart, Mic, Users, Shield } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/carepanion-logo.png";
 
 interface WalletConnectionGateProps {
   onWalletConnected: () => void;
 }
 
+// Placeholder function to fetch challenge from backend
+const fetchChallenge = async (publicKey: string): Promise<string> => {
+  // TODO: Implement API call to GET /api/auth/challenge?wallet=[publicKey]
+  // Backend must generate a unique, single-use message (nonce) for this user.
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Return dummy challenge message
+  return `Welcome to Carepanion! Please sign this message to verify your wallet ownership.\n\nNonce: ${Math.random().toString(36).substring(7)}`;
+};
+
+// Placeholder function to verify signature with backend
+const verifySignature = async (
+  message: string, 
+  signature: Uint8Array, 
+  publicKey: string
+): Promise<{ success: boolean; user?: { address: string; balance: number }; jwt?: string }> => {
+  // TODO: Implement API call to POST /api/auth/verify
+  // Body should include: { message, signature: base64(signature), publicKey }
+  // Backend must verify the signature, create a JWT, fetch user balance, and return session data.
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Return dummy verification result
+  return {
+    success: true,
+    user: {
+      address: publicKey,
+      balance: 1250
+    },
+    jwt: 'dummy.jwt.token'
+  };
+};
+
 const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const { publicKey, connect, signMessage } = useWallet();
+  const { toast } = useToast();
 
-  const handleConnectWallet = async () => {
+  const handleWalletLogin = async () => {
     setIsConnecting(true);
     
     try {
-      // TODO: Implement Solana Wallet Adapter connection logic here.
-      // This should:
-      // 1. Initialize Solana wallet adapter
-      // 2. Request wallet connection from user
-      // 3. Handle wallet selection and approval
-      // 4. Store wallet public key in state
-      // 5. Handle connection errors gracefully
+      // Step 1: Connect Wallet
+      if (!publicKey) {
+        try {
+          await connect();
+        } catch (connectError) {
+          toast({
+            variant: "destructive",
+            title: "Connection Failed",
+            description: "Failed to connect wallet. Please try again.",
+          });
+          setIsConnecting(false);
+          return;
+        }
+      }
+
+      // Wait for publicKey to be available after connection
+      if (!publicKey) {
+        toast({
+          variant: "destructive",
+          title: "Wallet Not Connected",
+          description: "Please connect your wallet to continue.",
+        });
+        setIsConnecting(false);
+        return;
+      }
+
+      // Step 2: Fetch Challenge from Backend
+      let challengeMessage: string;
+      try {
+        challengeMessage = await fetchChallenge(publicKey.toBase58());
+      } catch (fetchError) {
+        toast({
+          variant: "destructive",
+          title: "Failed to Fetch Challenge",
+          description: "Unable to get authentication challenge from server.",
+        });
+        setIsConnecting(false);
+        return;
+      }
+
+      // Step 3: Sign the Message
+      if (!signMessage) {
+        toast({
+          variant: "destructive",
+          title: "Wallet Not Supported",
+          description: "Your wallet does not support message signing.",
+        });
+        setIsConnecting(false);
+        return;
+      }
+
+      let signature: Uint8Array;
+      try {
+        const encodedMessage = new TextEncoder().encode(challengeMessage);
+        signature = await signMessage(encodedMessage);
+      } catch (signError) {
+        toast({
+          variant: "destructive",
+          title: "Signature Cancelled",
+          description: "You cancelled the signature request.",
+        });
+        setIsConnecting(false);
+        return;
+      }
+
+      // Step 4: Verify Signature with Backend
+      let verificationResult;
+      try {
+        verificationResult = await verifySignature(
+          challengeMessage,
+          signature,
+          publicKey.toBase58()
+        );
+      } catch (verifyError) {
+        toast({
+          variant: "destructive",
+          title: "Verification Failed",
+          description: "Failed to verify your signature with the server.",
+        });
+        setIsConnecting(false);
+        return;
+      }
+
+      // Step 5: Handle Login Success
+      if (verificationResult.success && verificationResult.user) {
+        // TODO: Store the JWT securely (e.g., in an httpOnly cookie)
+        
+        toast({
+          title: "Login Successful",
+          description: `Welcome! Your balance: ${verificationResult.user.balance} CARE`,
+        });
+        
+        // Notify parent component of successful login
+        onWalletConnected();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "Authentication failed. Please try again.",
+        });
+      }
       
-      // Simulate connection delay for UI purposes
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // After successful connection, notify parent component
-      onWalletConnected();
     } catch (error) {
-      console.error("Wallet connection failed:", error);
-      // TODO: Show error toast to user
+      console.error("Wallet login failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Unexpected Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+      });
     } finally {
       setIsConnecting(false);
     }
@@ -91,7 +224,7 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
               <Button
                 variant="hero"
                 size="xl"
-                onClick={handleConnectWallet}
+                onClick={handleWalletLogin}
                 disabled={isConnecting}
                 className="w-full font-semibold gradient-sci-fi shadow-glow hover:shadow-glow-purple hover:scale-[1.02] transition-smooth mb-8"
               >
