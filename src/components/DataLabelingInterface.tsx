@@ -10,14 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Play, Pause, ChevronDown } from "lucide-react";
-import UserProfileDropdown from "@/components/UserProfileDropdown";
-
-interface DataLabelingInterfaceProps {
-  walletAddress: string;
-  tokenBalance: number;
-  onLogout: () => void;
-}
+import { Play, Pause, Globe } from "lucide-react";
 
 // Mock data types
 interface AudioRecording {
@@ -42,9 +35,55 @@ interface EmotionLabel {
   accent: string;
 }
 
+// Props passed from parent
+interface DataLabelingInterfaceProps {
+  walletAddress: string;
+  tokenBalance: number;
+  onLogout: () => void;
+}
+
+// Helper to create mock recordings
+const createMockRecordings = (): AudioRecording[] => {
+  const items: AudioRecording[] = [];
+  for (let i = 1; i <= 20; i++) {
+    const id = `rec_${String(i).padStart(3, "0")}`;
+    const duration = Math.floor(Math.random() * 120) + 3;
+    const minutesAgo = Math.floor(Math.random() * 180);
+    const timeAgo = minutesAgo < 60 ? `${minutesAgo} min ago` : `${Math.floor(minutesAgo / 60)} hours ago`;
+    const status: AudioRecording["status"] = i % 7 === 0 ? "labeled" : "pending";
+    items.push({ id, filename: `Voice Recording ${i}`, duration, timeAgo, status });
+  }
+  return items;
+};
+
+// Simple waveform visualization component
+const WaveformThumbnail = () => (
+  <div className="flex items-center gap-px h-8">
+    {Array.from({ length: 30 }).map((_, i) => (
+      <div key={i} className="w-0.5 bg-muted-foreground/30 rounded-full" style={{ height: `${Math.random() * 100}%` }} />
+    ))}
+  </div>
+);
+
+const WaveformDisplay = () => (
+  <div className="flex items-center justify-center gap-px h-16">
+    {Array.from({ length: 100 }).map((_, i) => (
+      <div key={i} className="w-1 bg-muted-foreground/40 rounded-full" style={{ height: `${Math.random() * 100}%` }} />
+    ))}
+  </div>
+);
+
 const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLabelingInterfaceProps) => {
-  // State management
-  const [currentRecordingId, setCurrentRecordingId] = useState<string>("rec_001");
+  const initialRecordings = createMockRecordings();
+  
+  // Recordings state
+  const [recordings, setRecordings] = useState<AudioRecording[]>(initialRecordings);
+  const [currentRecordingId, setCurrentRecordingId] = useState<string | null>(() => {
+    const firstPending = initialRecordings.find((r) => r.status === "pending");
+    return firstPending ? firstPending.id : null;
+  });
+
+  // UI state
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string>("");
   const [comfortLevel, setComfortLevel] = useState<number[]>([5]);
@@ -59,36 +98,21 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
   const [accent, setAccent] = useState<string>("");
   const [filterValue, setFilterValue] = useState<string>("all");
 
-  // Mock data - in real implementation, this would come from backend
-  const recordings: AudioRecording[] = [
-    { id: "rec_001", filename: "Voice Recording 1", duration: 4, timeAgo: "3 min ago", status: "pending" },
-    { id: "rec_002", filename: "Voice Recording 2", duration: 8, timeAgo: "2 min ago", status: "pending" },
-    { id: "rec_003", filename: "Voice Recording 3", duration: 12, timeAgo: "2 hours ago", status: "pending" },
-    { id: "rec_004", filename: "Voice Recording 4", duration: 30, timeAgo: "28 min ago", status: "labeled" },
-    { id: "rec_005", filename: "Voice Recording 5", duration: 90, timeAgo: "3 hours ago", status: "pending" },
-  ];
-
   const emotions = ["Calm", "Happy", "Sad", "Anxious", "Lonely"];
+
+  const currentRecording = recordings.find((r) => r.id === currentRecordingId) || null;
+
+  const filteredRecordings = recordings.filter((r) => {
+    if (filterValue === "all") return true;
+    return r.status === (filterValue as AudioRecording["status"]);
+  });
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
-    // TODO: Implement audio player controls
-    // - Connect to HTML5 Audio API or use a library like Howler.js
-    // - Play/pause the current audio recording
-    // - Update playback position in real-time
   };
 
   const handleSaveAndNext = async () => {
-    // TODO: Implement state update and API call to backend
-    // This should:
-    // 1. Validate that all required fields are filled
-    // 2. Create emotion label object with current form values
-    // 3. Send POST request to backend API with label data
-    // 4. Update recording status to "labeled"
-    // 5. Load next pending recording
-    // 6. Reset form to default values
-    // 7. Show success toast notification
-    // 8. Handle errors and show error toast if needed
+    if (!currentRecordingId) return;
 
     const label: EmotionLabel = {
       primary: selectedEmotion,
@@ -107,12 +131,19 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
     console.log("Saving label:", label, "for recording:", currentRecordingId);
 
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Move to next recording
-    await fetchNextAudioClip();
-    
-    // Reset form
+    // Update recording status to 'labeled' and advance to next pending
+    setRecordings((prev) => {
+      const updated = prev.map((r) => 
+        r.id === currentRecordingId ? { ...r, status: "labeled" as AudioRecording["status"] } : r
+      );
+      const next = updated.find((r) => r.status === "pending" && r.id !== currentRecordingId);
+      setCurrentRecordingId(next ? next.id : null);
+      return updated;
+    });
+
+    // Reset form fields
     setSelectedEmotion("");
     setComfortLevel([5]);
     setEmotionalIntensity([5]);
@@ -126,62 +157,44 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
     setAccent("");
   };
 
-  const fetchNextAudioClip = async () => {
-    // TODO: Fetch next audio clip from the backend API
-    // This should:
-    // 1. Send GET request to /api/recordings/next
-    // 2. Receive next pending recording data
-    // 3. Update currentRecordingId state
-    // 4. Preload audio file for smooth playback
-    // 5. Handle case when no more recordings are available
-    
-    console.log("Fetching next audio clip...");
-  };
-
-  // Simple waveform visualization component
-  const WaveformThumbnail = () => (
-    <div className="flex items-center gap-px h-8">
-      {Array.from({ length: 30 }).map((_, i) => (
-        <div
-          key={i}
-          className="w-0.5 bg-muted-foreground/30 rounded-full"
-          style={{ height: `${Math.random() * 100}%` }}
-        />
-      ))}
-    </div>
-  );
-
-  const WaveformDisplay = () => (
-    <div className="flex items-center justify-center gap-px h-16">
-      {Array.from({ length: 100 }).map((_, i) => (
-        <div
-          key={i}
-          className="w-1 bg-muted-foreground/40 rounded-full"
-          style={{ height: `${Math.random() * 100}%` }}
-        />
-      ))}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border shadow-soft">
+      <header className="bg-card border-b border-border shadow-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Empathy Data Labeling</h1>
-          
-          <UserProfileDropdown 
-            walletAddress={walletAddress}
-            tokenBalance={tokenBalance}
-            onLogout={onLogout}
-          />
+
+          <div className="flex items-center gap-6">
+            {/* World ID Badge */}
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-1.5 rounded-full">
+                <Globe className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">World ID</span>
+            </div>
+
+            {/* Token Balance */}
+            <div className="text-right">
+              <div className="text-lg font-bold text-foreground">{Number(tokenBalance).toLocaleString()} CARE</div>
+              <div className="text-xs text-muted-foreground">
+                {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "—"}
+              </div>
+            </div>
+            
+            {/* Logout */}
+            <div>
+              <Button variant="ghost" size="sm" onClick={onLogout} className="ml-2">
+                Logout
+              </Button>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-6">
         <div className="grid grid-cols-12 gap-6">
-          
+
           {/* Left Column - Recording List */}
           <div className="col-span-3">
             <div className="space-y-4">
@@ -199,14 +212,14 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
               </Select>
 
               {/* Recording List */}
-              <div className="space-y-2">
-                {recordings.map((recording) => (
+              <div className="space-y-2 max-h-[calc(100vh-240px)] overflow-y-auto">
+                {filteredRecordings.map((recording) => (
                   <button
                     key={recording.id}
                     onClick={() => setCurrentRecordingId(recording.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-smooth border ${
-                      currentRecordingId === recording.id
-                        ? "bg-primary/5 border-primary"
+                    className={`w-full text-left p-3 rounded-lg transition-all border ${
+                      currentRecordingId === recording.id 
+                        ? "bg-primary/5 border-primary" 
                         : "bg-card border-border hover:border-primary/50"
                     }`}
                   >
@@ -215,12 +228,15 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                         <WaveformThumbnail />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-foreground truncate">
-                          {recording.filename}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {recording.duration} sec · {recording.timeAgo}
-                        </p>
+                        <p className="font-medium text-sm text-foreground truncate">{recording.filename}</p>
+                        <p className="text-xs text-muted-foreground">{recording.duration} sec · {recording.timeAgo}</p>
+                      </div>
+                      <div className="ml-2">
+                        {recording.status === "pending" ? (
+                          <Badge variant="secondary">Pending</Badge>
+                        ) : (
+                          <Badge variant="outline">{recording.status}</Badge>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -229,9 +245,9 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
             </div>
           </div>
 
-          {/* Center Column - Audio Player & Main Sliders */}
+          {/* Center Column - Audio Player */}
           <div className="col-span-5">
-            <Card className="p-6 shadow-soft">
+            <Card className="p-6 shadow-sm">
               {/* Waveform Display */}
               <div className="mb-6">
                 <WaveformDisplay />
@@ -239,47 +255,46 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
               {/* Recording Title */}
               <h2 className="text-xl font-semibold mb-4 text-foreground">
-                Voice Recording 1
+                {currentRecording ? currentRecording.filename : "No recording selected"}
               </h2>
 
               {/* Audio Player Controls */}
               <div className="flex items-center gap-4 mb-8">
-                <Button
-                  variant="default"
-                  size="icon"
-                  onClick={handlePlayPause}
+                <Button 
+                  variant="default" 
+                  size="icon" 
+                  onClick={handlePlayPause} 
                   className="h-12 w-12 rounded-full"
+                  disabled={!currentRecording}
                 >
                   {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
                 </Button>
-                
+
                 <div className="flex-1 flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground font-mono">0:04</span>
+                  <span className="text-sm text-muted-foreground font-mono">0:00</span>
                   <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-1/4 transition-smooth" />
+                    <div className="h-full bg-primary w-1/4 transition-all" />
                   </div>
-                  <span className="text-sm text-muted-foreground font-mono">0:04</span>
+                  <span className="text-sm text-muted-foreground font-mono">
+                    {currentRecording ? `0:${String(currentRecording.duration).padStart(2, '0')}` : '0:00'}
+                  </span>
                 </div>
               </div>
-
-              
             </Card>
           </div>
 
-          {/* Right Column - Additional Fields */}
+          {/* Right Column - Labeling Form */}
           <div className="col-span-4">
-            <Card className="p-6 shadow-soft">
-              {/* Top Emotion Selection */}
+            <Card className="p-6 shadow-sm max-h-[calc(100vh-160px)] overflow-y-auto">
+              {/* Emotion Selection */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-foreground">
-                  What do you feel?
-                </label>
+                <label className="block text-sm font-medium mb-3 text-foreground">What do you feel?</label>
                 <div className="flex flex-wrap gap-2">
                   {emotions.map((emotion) => (
-                    <Button
-                      key={emotion}
-                      variant={selectedEmotion === emotion ? "default" : "pill"}
-                      onClick={() => setSelectedEmotion(emotion)}
+                    <Button 
+                      key={emotion} 
+                      variant={selectedEmotion === emotion ? "default" : "outline"} 
+                      onClick={() => setSelectedEmotion(emotion)} 
                       size="sm"
                     >
                       {emotion}
@@ -288,108 +303,69 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                 </div>
               </div>
 
-              {/* Comfort Level (duplicate for right side) */}
+              {/* Comfort Level */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium text-foreground">Comfort level</label>
                   <span className="text-sm font-semibold text-foreground">{comfortLevel[0]}</span>
                 </div>
-                <Slider
-                  value={comfortLevel}
-                  onValueChange={setComfortLevel}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={comfortLevel} onValueChange={setComfortLevel} max={10} step={1} className="w-full" />
               </div>
 
-              {/* Emotional Intensity (duplicate) */}
+              {/* Emotional Intensity */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium text-foreground">Emotional intensity</label>
                   <span className="text-sm font-semibold text-foreground">{emotionalIntensity[0]}</span>
                 </div>
-                <Slider
-                  value={emotionalIntensity}
-                  onValueChange={setEmotionalIntensity}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={emotionalIntensity} onValueChange={setEmotionalIntensity} max={10} step={1} className="w-full" />
               </div>
 
-              {/* Clarity of Speech (duplicate) */}
+              {/* Clarity of Speech */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium text-foreground">Clarity of speech</label>
                   <span className="text-sm font-semibold text-foreground">{clarityOfSpeech[0]}</span>
                 </div>
-                <Slider
-                  value={clarityOfSpeech}
-                  onValueChange={setClarityOfSpeech}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={clarityOfSpeech} onValueChange={setClarityOfSpeech} max={10} step={1} className="w-full" />
               </div>
 
-              {/* Appropriateness for Elderly (duplicate) */}
+              {/* Appropriateness for Elderly */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">
-                    Appropriateness for elderly hearing
-                  </label>
+                  <label className="text-sm font-medium text-foreground">Appropriateness for elderly</label>
                   <span className="text-sm font-semibold text-foreground">{appropriatenessForElderly[0]}</span>
                 </div>
-                <Slider
-                  value={appropriatenessForElderly}
-                  onValueChange={setAppropriatenessForElderly}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={appropriatenessForElderly} onValueChange={setAppropriatenessForElderly} max={10} step={1} className="w-full" />
               </div>
 
-              {/* Perceived Empathy Slider */}
+              {/* Perceived Empathy */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium text-foreground">Perceived empathy</label>
                   <span className="text-sm font-semibold text-foreground">{perceivedEmpathy[0]}</span>
                 </div>
-                <Slider
-                  value={perceivedEmpathy}
-                  onValueChange={setPerceivedEmpathy}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={perceivedEmpathy} onValueChange={setPerceivedEmpathy} max={10} step={1} className="w-full" />
               </div>
 
               {/* Speaking Rate */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">
-                  Speaking rate
-                </label>
-                <div className="flex items-center gap-2">
-                  <Select value={speakingRate} onValueChange={setSpeakingRate}>
-                    <SelectTrigger className="flex-1 bg-background">
-                      <SelectValue placeholder="Select rate" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="slow">Slow</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="fast">Fast</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground">Fast</span>
-                </div>
+                <label className="block text-sm font-medium mb-2 text-foreground">Speaking rate</label>
+                <Select value={speakingRate} onValueChange={setSpeakingRate}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select rate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="slow">Slow</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="fast">Fast</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Gender Perceived */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">
-                  Gender perceived
-                </label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Gender perceived</label>
                 <Select value={genderPerceived} onValueChange={setGenderPerceived}>
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Select gender" />
@@ -405,9 +381,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
               {/* Age Perceived */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">
-                  Age perceived
-                </label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Age perceived</label>
                 <Select value={agePerceived} onValueChange={setAgePerceived}>
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Select age range" />
@@ -424,9 +398,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
               {/* Cultural Fit */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">
-                  Cultural fit
-                </label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Cultural fit</label>
                 <Select value={culturalFit} onValueChange={setCulturalFit}>
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Select cultural fit" />
@@ -442,9 +414,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
               {/* Accent */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2 text-foreground">
-                  Accent
-                </label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Accent</label>
                 <Select value={accent} onValueChange={setAccent}>
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Select accent" />
@@ -462,14 +432,14 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
               </div>
 
               {/* Save Button */}
-              <Button
-                variant="default"
-                onClick={handleSaveAndNext}
-                disabled={!selectedEmotion}
-                className="w-full shadow-soft hover:shadow-glow"
+              <Button 
+                variant="default" 
+                onClick={handleSaveAndNext} 
+                disabled={!selectedEmotion || !currentRecording} 
+                className="w-full" 
                 size="lg"
               >
-                Save & next
+                Save & Next
               </Button>
             </Card>
           </div>
