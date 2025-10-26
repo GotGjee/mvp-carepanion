@@ -78,12 +78,12 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
   // UI state
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string>("");
-  const [comfortLevel, setComfortLevel] = useState<number[]>([5]);
-  const [emotionalIntensity, setEmotionalIntensity] = useState<number[]>([5]);
-  const [clarityOfSpeech, setClarityOfSpeech] = useState<number[]>([5]);
-  const [appropriatenessForElderly, setAppropriatenessForElderly] = useState<number[]>([5]);
-  const [perceivedEmpathy, setPerceivedEmpathy] = useState<number[]>([5]);
-  const [speakingRate, setSpeakingRate] = useState<string>("slow");
+  const [comfortLevel, setComfortLevel] = useState<number[]>([0]);
+  const [emotionalIntensity, setEmotionalIntensity] = useState<number[]>([0]);
+  const [clarityOfSpeech, setClarityOfSpeech] = useState<number[]>([0]);
+  const [appropriatenessForElderly, setAppropriatenessForElderly] = useState<number[]>([0]);
+  const [perceivedEmpathy, setPerceivedEmpathy] = useState<number[]>([0]);
+  const [speakingRate, setSpeakingRate] = useState<string>("");
   const [genderPerceived, setGenderPerceived] = useState<string>("");
   const [agePerceived, setAgePerceived] = useState<string>("");
   const [culturalFit, setCulturalFit] = useState<string>("");
@@ -135,12 +135,12 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
     // Reset form fields
     setSelectedEmotion("");
-    setComfortLevel([5]);
-    setEmotionalIntensity([5]);
-    setClarityOfSpeech([5]);
-    setAppropriatenessForElderly([5]);
-    setPerceivedEmpathy([5]);
-    setSpeakingRate("slow");  // Reset to default value
+    setComfortLevel([0]);
+    setEmotionalIntensity([0]);
+    setClarityOfSpeech([0]);
+    setAppropriatenessForElderly([0]);
+    setPerceivedEmpathy([0]);
+    setSpeakingRate(""); 
     setGenderPerceived("");
     setAgePerceived("");
     setCulturalFit("");
@@ -370,9 +370,9 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                       data-perceived-empathy={vol.toLowerCase()}
                       onClick={() => setPerceivedEmpathy([idx === 0 ? 3 : idx === 1 ? 6 : 9])}
                       className={`p-3 rounded-xl border-2 transition-all ${
-                        (perceivedEmpathy[0] <= 3 && idx === 0) ||
-                        (perceivedEmpathy[0] > 3 && perceivedEmpathy[0] <= 6 && idx === 1) ||
-                        (perceivedEmpathy[0] > 6 && idx === 2)
+                        (perceivedEmpathy[0] === 3 && idx === 0) ||
+                        (perceivedEmpathy[0] === 6 && idx === 1) ||
+                        (perceivedEmpathy[0] === 9 && idx === 2)
                           ? 'border-purple-600 bg-purple-50 text-purple-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
                       }`}
