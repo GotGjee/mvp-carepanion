@@ -1,16 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Play, Pause, Globe } from "lucide-react";
+import UserProfileDropdown from "@/components/UserProfileDropdown";
+import { Play, Pause, Volume2, Mic, Heart, ChevronRight, Check, MessageSquare } from "lucide-react";
 
 // Mock data types
 interface AudioRecording {
@@ -157,291 +149,262 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
     setAccent("");
   };
 
+  const [labelCount, setLabelCount] = useState(0);
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Empathy Data Labeling</h1>
-
-          <div className="flex items-center gap-6">
-            {/* World ID Badge */}
-            <div className="flex items-center gap-2">
-              <div className="bg-primary/10 p-1.5 rounded-full">
-                <Globe className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-foreground">World ID</span>
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+              <Heart className="w-5 h-5 text-white" />
             </div>
-
-            {/* Token Balance */}
-            <div className="text-right">
-              <div className="text-lg font-bold text-foreground">{Number(tokenBalance).toLocaleString()} CARE</div>
-              <div className="text-xs text-muted-foreground">
-                {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "—"}
-              </div>
+            <h1 className="text-xl font-bold text-gray-900">Carepanion</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full text-sm font-medium">
+              {labelCount} Labeled
             </div>
-            
-            {/* Logout */}
-            <div>
-              <Button variant="ghost" size="sm" onClick={onLogout} className="ml-2">
-                Logout
-              </Button>
-            </div>
+            <UserProfileDropdown
+              walletAddress={walletAddress}
+              tokenBalance={tokenBalance}
+              onLogout={onLogout}
+            />
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-12 gap-6">
+        {/* Progress */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-2 flex-1 bg-blue-600 rounded-full" />
+            <div className="h-2 flex-1 bg-blue-600 rounded-full" />
+            <div className="h-2 flex-1 bg-gray-200 rounded-full" />
+          </div>
+          <p className="text-sm text-gray-600">Step 2 of 3: Voice Labeling</p>
+        </div>
 
-          {/* Left Column - Recording List */}
-          <div className="col-span-3">
-            <div className="space-y-4">
-              {/* Filter Dropdown */}
-              <Select value={filterValue} onValueChange={setFilterValue}>
-                <SelectTrigger className="w-full bg-card">
-                  <SelectValue placeholder="Filter" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Recordings</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="labeled">Labeled</SelectItem>
-                  <SelectItem value="skipped">Skipped</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Horizontal Layout */}
+        <div className="grid grid-cols-5 gap-6">
+          {/* Left Side - Audio Player (2 columns) */}
+          <div className="col-span-2 space-y-6">
+            <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Label Voice Sample</h2>
+              <p className="text-sm text-gray-600 mb-6">Listen to the audio clip and rate the voice characteristics.</p>
 
-              {/* Recording List */}
-              <div className="space-y-2 max-h-[calc(100vh-240px)] overflow-y-auto">
-                {filteredRecordings.map((recording) => (
-                  <button
-                    key={recording.id}
-                    onClick={() => setCurrentRecordingId(recording.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-all border ${
-                      currentRecordingId === recording.id 
-                        ? "bg-primary/5 border-primary" 
-                        : "bg-card border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-12">
-                        <WaveformThumbnail />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-foreground truncate">{recording.filename}</p>
-                        <p className="text-xs text-muted-foreground">{recording.duration} sec · {recording.timeAgo}</p>
-                      </div>
-                      <div className="ml-2">
-                        {recording.status === "pending" ? (
-                          <Badge variant="secondary">Pending</Badge>
-                        ) : (
-                          <Badge variant="outline">{recording.status}</Badge>
-                        )}
-                      </div>
+              {/* Audio Player */}
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 mb-4 border-2 border-blue-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {currentRecording ? currentRecording.filename : "Sample #1247"}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {currentRecording ? `${currentRecording.duration} seconds` : "15 seconds"}
+                      </p>
                     </div>
-                  </button>
-                ))}
+                  </div>
+                  <Mic className="w-5 h-5 text-purple-600" />
+                </div>
+                
+                {/* Waveform */}
+                <div className="bg-white rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-1 h-12 justify-center">
+                    {[...Array(30)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-1 rounded-full transition-all ${
+                          isPlaying ? 'bg-blue-600 animate-pulse' : 'bg-gray-300'
+                        }`}
+                        style={{
+                          height: `${Math.random() * 60 + 20}%`,
+                          animationDelay: `${i * 50}ms`
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handlePlayPause}
+                  disabled={!currentRecording}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="w-5 h-5" />
+                      Pause
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5" />
+                      Play Audio
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Info Card */}
+            <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-6 border border-blue-200">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <Heart className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Making a Difference!</h3>
+                  <p className="text-sm text-gray-700">
+                    Each label helps companion robots better understand comfort and clarity for elderly users worldwide.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Center Column - Audio Player */}
-          <div className="col-span-5">
-            <Card className="p-6 shadow-sm">
-              {/* Waveform Display */}
-              <div className="mb-6">
-                <WaveformDisplay />
-              </div>
-
-              {/* Recording Title */}
-              <h2 className="text-xl font-semibold mb-4 text-foreground">
-                {currentRecording ? currentRecording.filename : "No recording selected"}
-              </h2>
-
-              {/* Audio Player Controls */}
-              <div className="flex items-center gap-4 mb-8">
-                <Button 
-                  variant="default" 
-                  size="icon" 
-                  onClick={handlePlayPause} 
-                  className="h-12 w-12 rounded-full"
-                  disabled={!currentRecording}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-                </Button>
-
-                <div className="flex-1 flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground font-mono">0:00</span>
-                  <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-1/4 transition-all" />
-                  </div>
-                  <span className="text-sm text-muted-foreground font-mono">
-                    {currentRecording ? `0:${String(currentRecording.duration).padStart(2, '0')}` : '0:00'}
+          {/* Right Side - Rating Form (3 columns) */}
+          <div className="col-span-3 bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+            <div className="grid grid-cols-2 gap-6">
+              {/* Comfort Rating */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-gray-900">Comfort Level</label>
+                  <span className="text-xs text-gray-600">
+                    {comfortLevel[0] > 0 ? comfortLevel[0] + ' / 10' : 'Not rated'}
                   </span>
                 </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Right Column - Labeling Form */}
-          <div className="col-span-4">
-            <Card className="p-6 shadow-sm max-h-[calc(100vh-160px)] overflow-y-auto">
-              {/* Emotion Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-foreground">What do you feel?</label>
-                <div className="flex flex-wrap gap-2">
-                  {emotions.map((emotion) => (
-                    <Button 
-                      key={emotion} 
-                      variant={selectedEmotion === emotion ? "default" : "outline"} 
-                      onClick={() => setSelectedEmotion(emotion)} 
-                      size="sm"
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setComfortLevel([rating * 2])}
+                      className={`flex-1 py-3 rounded-xl border-2 transition-all font-semibold ${
+                        comfortLevel[0] === rating * 2
+                          ? 'border-blue-600 bg-blue-600 text-white'
+                          : 'border-gray-200 hover:border-blue-300 text-gray-700'
+                      }`}
                     >
-                      {emotion}
-                    </Button>
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-2 px-1">
+                  <span className="text-xs text-gray-500">Uncomfortable</span>
+                  <span className="text-xs text-gray-500">Very Comfortable</span>
+                </div>
+              </div>
+
+              {/* Clarity Rating */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-gray-900">Clarity</label>
+                  <span className="text-xs text-gray-600">
+                    {clarityOfSpeech[0] > 0 ? Math.round(clarityOfSpeech[0] / 2) + ' / 5' : 'Not rated'}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setClarityOfSpeech([rating * 2])}
+                      className={`flex-1 py-3 rounded-xl border-2 transition-all font-semibold ${
+                        clarityOfSpeech[0] === rating * 2
+                          ? 'border-purple-600 bg-purple-600 text-white'
+                          : 'border-gray-200 hover:border-purple-300 text-gray-700'
+                      }`}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-2 px-1">
+                  <span className="text-xs text-gray-500">Hard to Understand</span>
+                  <span className="text-xs text-gray-500">Crystal Clear</span>
+                </div>
+              </div>
+
+              {/* Speaking Rate */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-3">Speaking Rate</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['slow', 'medium', 'fast'].map((rate) => (
+                    <button
+                      key={rate}
+                      onClick={() => setSpeakingRate(rate)}
+                      className={`p-3 rounded-xl border-2 transition-all ${
+                        speakingRate === rate
+                          ? 'border-blue-600 bg-blue-50 text-blue-900'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <span className="font-medium text-sm capitalize">{rate}</span>
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Comfort Level */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Comfort level</label>
-                  <span className="text-sm font-semibold text-foreground">{comfortLevel[0]}</span>
+              {/* Perceived Empathy as Volume */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-3">Perceived Empathy</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Low', 'Medium', 'High'].map((vol, idx) => (
+                    <button
+                      key={vol}
+                      onClick={() => setPerceivedEmpathy([idx === 0 ? 3 : idx === 1 ? 6 : 9])}
+                      className={`p-3 rounded-xl border-2 transition-all ${
+                        (perceivedEmpathy[0] <= 3 && idx === 0) ||
+                        (perceivedEmpathy[0] > 3 && perceivedEmpathy[0] <= 6 && idx === 1) ||
+                        (perceivedEmpathy[0] > 6 && idx === 2)
+                          ? 'border-purple-600 bg-purple-50 text-purple-900'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <span className="font-medium text-sm">{vol}</span>
+                    </button>
+                  ))}
                 </div>
-                <Slider value={comfortLevel} onValueChange={setComfortLevel} max={10} step={1} className="w-full" />
               </div>
+            </div>
 
-              {/* Emotional Intensity */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Emotional intensity</label>
-                  <span className="text-sm font-semibold text-foreground">{emotionalIntensity[0]}</span>
-                </div>
-                <Slider value={emotionalIntensity} onValueChange={setEmotionalIntensity} max={10} step={1} className="w-full" />
+            {/* Optional Notes */}
+            <div className="mt-6">
+              <label className="block text-sm font-semibold text-gray-900 mb-3">
+                Notes (Optional)
+                <span className="text-gray-500 font-normal ml-2">Any additional observations?</span>
+              </label>
+              <div className="relative">
+                <MessageSquare className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
+                <textarea
+                  value={accent}
+                  onChange={(e) => setAccent(e.target.value)}
+                  placeholder="Anything notable about accent, tone, background noise, or emotion?"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none resize-none"
+                  rows={2}
+                />
               </div>
+            </div>
 
-              {/* Clarity of Speech */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Clarity of speech</label>
-                  <span className="text-sm font-semibold text-foreground">{clarityOfSpeech[0]}</span>
-                </div>
-                <Slider value={clarityOfSpeech} onValueChange={setClarityOfSpeech} max={10} step={1} className="w-full" />
-              </div>
+            {/* Submit Button */}
+            <button
+              onClick={() => {
+                handleSaveAndNext();
+                setLabelCount(prev => prev + 1);
+              }}
+              disabled={!selectedEmotion || comfortLevel[0] === 0 || clarityOfSpeech[0] === 0}
+              className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-2 mt-6 ${
+                selectedEmotion && comfortLevel[0] > 0 && clarityOfSpeech[0] > 0
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Submit Label & Continue
+              <ChevronRight className="w-5 h-5" />
+            </button>
 
-              {/* Appropriateness for Elderly */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Appropriateness for elderly</label>
-                  <span className="text-sm font-semibold text-foreground">{appropriatenessForElderly[0]}</span>
-                </div>
-                <Slider value={appropriatenessForElderly} onValueChange={setAppropriatenessForElderly} max={10} step={1} className="w-full" />
-              </div>
-
-              {/* Perceived Empathy */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Perceived empathy</label>
-                  <span className="text-sm font-semibold text-foreground">{perceivedEmpathy[0]}</span>
-                </div>
-                <Slider value={perceivedEmpathy} onValueChange={setPerceivedEmpathy} max={10} step={1} className="w-full" />
-              </div>
-
-              {/* Speaking Rate */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">Speaking rate</label>
-                <Select value={speakingRate} onValueChange={setSpeakingRate}>
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select rate" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="slow">Slow</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="fast">Fast</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Gender Perceived */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">Gender perceived</label>
-                <Select value={genderPerceived} onValueChange={setGenderPerceived}>
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="non-binary">Non-binary</SelectItem>
-                    <SelectItem value="unsure">Unsure</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Age Perceived */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">Age perceived</label>
-                <Select value={agePerceived} onValueChange={setAgePerceived}>
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select age range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="child">Child (0-12)</SelectItem>
-                    <SelectItem value="teen">Teen (13-19)</SelectItem>
-                    <SelectItem value="young-adult">Young Adult (20-35)</SelectItem>
-                    <SelectItem value="adult">Adult (36-55)</SelectItem>
-                    <SelectItem value="senior">Senior (56+)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Cultural Fit */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">Cultural fit</label>
-                <Select value={culturalFit} onValueChange={setCulturalFit}>
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select cultural fit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="very-appropriate">Very Appropriate</SelectItem>
-                    <SelectItem value="appropriate">Appropriate</SelectItem>
-                    <SelectItem value="neutral">Neutral</SelectItem>
-                    <SelectItem value="inappropriate">Inappropriate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Accent */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2 text-foreground">Accent</label>
-                <Select value={accent} onValueChange={setAccent}>
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select accent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Accent</SelectItem>
-                    <SelectItem value="british">British</SelectItem>
-                    <SelectItem value="american">American</SelectItem>
-                    <SelectItem value="australian">Australian</SelectItem>
-                    <SelectItem value="asian">Asian</SelectItem>
-                    <SelectItem value="european">European</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Save Button */}
-              <Button 
-                variant="default" 
-                onClick={handleSaveAndNext} 
-                disabled={!selectedEmotion || !currentRecording} 
-                className="w-full" 
-                size="lg"
-              >
-                Save & Next
-              </Button>
-            </Card>
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              Your label will be recorded on World Chain and contribute to AI training
+            </p>
           </div>
         </div>
       </div>
