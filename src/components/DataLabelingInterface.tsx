@@ -167,10 +167,10 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
   const [labelCount, setLabelCount] = useState(0);
 
   return (
-    <div className="h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto h-full flex flex-col">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
@@ -190,7 +190,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
         </div>
 
         {/* Progress */}
-        <div className="mb-4 flex-shrink-0">
+        <div className="mb-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
@@ -200,9 +200,9 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
         </div>
 
         {/* Horizontal Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6 flex-1 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
           {/* Left Side - Audio Player (2 columns) */}
-          <div className="lg:col-span-2 space-y-4 overflow-y-auto">
+          <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 mb-2">Label Voice Sample</h2>
               <p className="text-sm text-gray-600 mb-6">Listen to the audio clip and rate the voice characteristics.</p>
@@ -279,8 +279,8 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
           </div>
 
           {/* Right Side - Rating Form (3 columns) */}
-          <div className="lg:col-span-3 bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100 overflow-hidden flex flex-col">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto">
+          <div className="lg:col-span-3 bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100 flex flex-col">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Comfort Rating */}
               <div>
                 <div className="flex items-center justify-between mb-3">
