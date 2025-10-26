@@ -60,10 +60,10 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto min-h-screen flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
@@ -77,27 +77,27 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
         </div>
 
         {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-1">
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
             <div className="h-2 flex-1 bg-gray-200 rounded-full" />
             <div className="h-2 flex-1 bg-gray-200 rounded-full" />
           </div>
-          <p className="text-sm text-gray-600">Step 1 of 3: Profile Setup</p>
+          <p className="text-sm text-gray-600">Step 2 of 3: Profile Setup</p>
         </div>
 
         {/* Horizontal Form Layout */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-          <div className="grid grid-cols-2 gap-8">
+        <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 flex-1 overflow-hidden flex flex-col">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Left Column */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tell Us About Yourself</h2>
-              <p className="text-gray-600 mb-6">This helps us understand diverse perspectives and improve our AI models for everyone.</p>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Tell Us About Yourself</h2>
+              <p className="text-gray-600 mb-2 text-sm">This helps us understand diverse perspectives and improve our AI models for everyone.</p>
 
               {/* Gender */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-3">Gender</label>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="mb-2">
+                <label className="block text-xs font-semibold text-gray-900 mb-1">Gender</label>
+                <div className="grid grid-cols-2 gap-1">
                   {genderOptions.map((option) => (
                     <button
                       key={option}
@@ -115,9 +115,9 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
               </div>
 
               {/* Age */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-3">Age Bracket</label>
-                <div className="grid grid-cols-4 gap-3">
+              <div className="mb-2">
+                <label className="block text-xs font-semibold text-gray-900 mb-1">Age Bracket</label>
+                <div className="grid grid-cols-4 gap-1">
                   {ageBrackets.map((bracket) => (
                     <button
                       key={bracket}
@@ -136,10 +136,10 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
             </div>
 
             {/* Right Column */}
-            <div>
+            <div className="flex flex-col">
               {/* Hearing Ability */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-3">Hearing Ability</label>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Hearing Ability</label>
                 <div className="space-y-2">
                   {hearingOptions.map((option) => (
                     <button
@@ -159,22 +159,22 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
               </div>
 
               {/* Nationality */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-3">Nationality</label>
-                <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Nationality</label>
+                <div className="grid grid-cols-3 gap-2">
                   {popularCountries.map((country) => (
                     <button
                       key={country.code}
                       onClick={() => handleInputChange('nationality', country.code)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
+                      className={`p-2 rounded-xl border-2 transition-all ${
                         profileData.nationality === country.code
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{country.flag}</span>
-                        <span className="font-medium text-xs">{country.name}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg">{country.flag}</span>
+                        <span className="font-medium text-xs truncate">{country.name}</span>
                       </div>
                     </button>
                   ))}
@@ -187,17 +187,17 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
           <button
             onClick={handleSubmit}
             disabled={!canProceed()}
-            className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-2 mt-6 ${
+            className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-3 mt-6 ${
               canProceed()
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-xl hover:scale-[1.02] transform duration-200'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            Continue to Voice Labeling
-            <ChevronRight className="w-5 h-5" />
+            <span className="whitespace-nowrap">Continue to Voice Labeling</span>
+            <ChevronRight className="w-6 h-6 flex-shrink-0" />
           </button>
 
-          <p className="text-xs text-gray-500 mt-4 text-center">
+          <p className="text-xs text-gray-500 mt-4 text-center px-4">
             Your data is encrypted and stored securely on World Chain. We never share personally identifiable information.
           </p>
         </div>

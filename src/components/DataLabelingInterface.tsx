@@ -90,8 +90,6 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
   const [accent, setAccent] = useState<string>("");
   const [filterValue, setFilterValue] = useState<string>("all");
 
-  const emotions = ["Calm", "Happy", "Sad", "Anxious", "Lonely"];
-
   const currentRecording = recordings.find((r) => r.id === currentRecordingId) || null;
 
   const filteredRecordings = recordings.filter((r) => {
@@ -142,20 +140,37 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
     setClarityOfSpeech([5]);
     setAppropriatenessForElderly([5]);
     setPerceivedEmpathy([5]);
-    setSpeakingRate("slow");
+    setSpeakingRate("slow");  // Reset to default value
     setGenderPerceived("");
     setAgePerceived("");
     setCulturalFit("");
     setAccent("");
+    
+    // Reset UI selections for Speaking Rate and Perceived Empathy
+    const speakingRateButtons = document.querySelectorAll('[data-speaking-rate]');
+    speakingRateButtons.forEach(button => {
+      if (button instanceof HTMLElement) {
+        button.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-900');
+        button.classList.add('border-gray-200', 'text-gray-700');
+      }
+    });
+
+    const empathyButtons = document.querySelectorAll('[data-perceived-empathy]');
+    empathyButtons.forEach(button => {
+      if (button instanceof HTMLElement) {
+        button.classList.remove('border-purple-600', 'bg-purple-50', 'text-purple-900');
+        button.classList.add('border-gray-200', 'text-gray-700');
+      }
+    });
   };
 
   const [labelCount, setLabelCount] = useState(0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
@@ -175,20 +190,20 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
         </div>
 
         {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="mb-4 flex-shrink-0">
+          <div className="flex items-center gap-2 mb-1">
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
             <div className="h-2 flex-1 bg-gray-200 rounded-full" />
           </div>
-          <p className="text-sm text-gray-600">Step 2 of 3: Voice Labeling</p>
+          <p className="text-sm text-gray-600">Step 3 of 3: Voice Labeling</p>
         </div>
 
         {/* Horizontal Layout */}
-        <div className="grid grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6 flex-1 min-h-0">
           {/* Left Side - Audio Player (2 columns) */}
-          <div className="col-span-2 space-y-6">
-            <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+          <div className="lg:col-span-2 space-y-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 mb-2">Label Voice Sample</h2>
               <p className="text-sm text-gray-600 mb-6">Listen to the audio clip and rate the voice characteristics.</p>
 
@@ -264,8 +279,8 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
           </div>
 
           {/* Right Side - Rating Form (3 columns) */}
-          <div className="col-span-3 bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-            <div className="grid grid-cols-2 gap-6">
+          <div className="lg:col-span-3 bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100 overflow-hidden flex flex-col">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto">
               {/* Comfort Rating */}
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -331,6 +346,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                   {['slow', 'medium', 'fast'].map((rate) => (
                     <button
                       key={rate}
+                      data-speaking-rate={rate}
                       onClick={() => setSpeakingRate(rate)}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         speakingRate === rate
@@ -351,6 +367,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                   {['Low', 'Medium', 'High'].map((vol, idx) => (
                     <button
                       key={vol}
+                      data-perceived-empathy={vol.toLowerCase()}
                       onClick={() => setPerceivedEmpathy([idx === 0 ? 3 : idx === 1 ? 6 : 9])}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         (perceivedEmpathy[0] <= 3 && idx === 0) ||
@@ -391,9 +408,9 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                 handleSaveAndNext();
                 setLabelCount(prev => prev + 1);
               }}
-              disabled={!selectedEmotion || comfortLevel[0] === 0 || clarityOfSpeech[0] === 0}
+              disabled={comfortLevel[0] === 0 || clarityOfSpeech[0] === 0}
               className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-2 mt-6 ${
-                selectedEmotion && comfortLevel[0] > 0 && clarityOfSpeech[0] > 0
+                comfortLevel[0] > 0 && clarityOfSpeech[0] > 0
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
