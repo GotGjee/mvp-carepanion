@@ -2,72 +2,133 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/2c1f07f9-1839-42bb-a4a7-dfd23e2d49ee
+# 🤖 Carepanion - Empathy-Powered Eldercare AI
 
-## How can I edit this code?
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-38B2AC.svg)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-4.5.0-646CFF.svg)](https://vitejs.dev/)
 
-There are several ways of editing your application.
+Carepanion is an innovative platform that leverages AI and blockchain technology to enhance eldercare through empathetic voice interactions. By collecting and labeling voice samples, we're building AI models that help companion robots better understand and respond to elderly users' needs.
 
-**Use Lovable**
+![Carepanion Screenshot](screenshots/preview.png)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2c1f07f9-1839-42bb-a4a7-dfd23e2d49ee) and start prompting.
+## ✨ Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- 🔒 **Secure Authentication**: World ID integration for privacy-preserving verification
+- 👥 **Profile Management**: Customizable user profiles with demographic information
+- 🎯 **Voice Labeling Interface**: Intuitive UI for rating voice characteristics
+- 💎 **Blockchain Integration**: Transparent reward system using World Chain
+- 📊 **Real-time Progress Tracking**: Monitor your contribution and rewards
+- 🌐 **Global Impact**: Help improve eldercare AI for users worldwide
 
-**Use your preferred IDE**
+## 🚀 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js (v16 or higher)
+- npm or yarn
+- A modern web browser
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Clone the repository:
+```bash
+git clone https://github.com/GotGjee/mvp-carepanion.git
+cd mvp-carepanion
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Create a local environment file:
+```bash
+cp .env.example .env.local
+```
 
-**Use GitHub Codespaces**
+4. Start the development server:
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## What technologies are used for this project?
+## 🏗️ Project Structure
 
-This project is built with:
+```
+mvp-carepanion/
+├── src/
+│   ├── assets/        # Static assets and images
+│   ├── components/    # Reusable React components
+│   │   ├── ui/       # UI component library
+│   │   └── ...
+│   ├── hooks/        # Custom React hooks
+│   ├── lib/          # Utility functions and helpers
+│   └── pages/        # Main application pages
+├── public/           # Public static files
+├── .env.example      # Environment variables template
+├── package.json      # Project dependencies and scripts
+└── README.md         # Project documentation
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🛠️ Built With
 
-## How can I deploy this project?
+- [React](https://reactjs.org/) - Frontend framework
+- [TypeScript](https://www.typescriptlang.org/) - Programming language
+- [Vite](https://vitejs.dev/) - Build tool
+- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
+- [Solana](https://solana.com/) - Blockchain platform
+- [World ID](https://worldcoin.org/) - Privacy-preserving authentication
+- [Lucide Icons](https://lucide.dev/) - Icon library
 
-Simply open [Lovable](https://lovable.dev/projects/2c1f07f9-1839-42bb-a4a7-dfd23e2d49ee) and click on Share -> Publish.
+## 🌱 Contributing
 
-## Can I connect a custom domain to my Lovable project?
+We welcome contributions! Please follow these steps:
 
-Yes, you can!
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+For major changes, please open an issue first to discuss what you would like to change.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📝 Development Guidelines
+
+- Follow the TypeScript style guide
+- Write meaningful commit messages
+- Keep components modular and reusable
+- Add appropriate comments and documentation
+- Test your changes thoroughly
+- Update documentation when necessary
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [shadcn/ui](https://ui.shadcn.com/) for beautiful UI components
+- [Radix UI](https://www.radix-ui.com/) for accessible component primitives
+- The entire open-source community
+
+## 🤝 Contact
+
+GotGjee - [@GotGjee](https://github.com/GotGjee)
+
+Project Link: [https://github.com/GotGjee/mvp-carepanion](https://github.com/GotGjee/mvp-carepanion)
+
+## 🚧 Roadmap
+
+- [ ] Add voice recording feature
+- [ ] Implement real-time AI analysis
+- [ ] Expand language support
+- [ ] Mobile app development
+- [ ] Integration with more eldercare platforms
