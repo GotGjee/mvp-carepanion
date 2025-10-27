@@ -1,7 +1,3 @@
-# Welcome to your Lovable project
-
-## Project info
-
 # 🤖 Carepanion - Empathy-Powered Eldercare AI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
