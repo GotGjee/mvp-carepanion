@@ -1,14 +1,7 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Heart, Check, ChevronRight } from "lucide-react";
-
-interface ProfileData {
-  gender: string;
-  age: string;
-  hearingAbility: string;
-  nationality: string;
-}
+import { Heart, Check, ChevronRight, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { setupProfile, ProfileData } from "@/services/api";
 
 interface ProfileSetupProps {
   walletAddress: string;
@@ -16,15 +9,17 @@ interface ProfileSetupProps {
 }
 
 const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
     gender: '',
-    age: '',
-    hearingAbility: '',
+    age_bracket: '',
+    hearing_ability: '',
     nationality: ''
   });
 
   const genderOptions = ['Female', 'Male', 'Non-binary', 'Prefer not to say'];
-  const ageBrackets = ['60–69', '70–79', '80–89', '90+'];
+  const ageBrackets = ['60-69', '70-79', '80-89', '90+'];
   const hearingOptions = ['Normal', 'Mild loss', 'Moderate loss', 'Severe loss', 'Profound'];
   
   const popularCountries = [
@@ -41,22 +36,36 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
   };
 
   const canProceed = () => {
-    return profileData.gender && profileData.age && profileData.hearingAbility && profileData.nationality;
+    return profileData.gender && profileData.age_bracket && profileData.hearing_ability && profileData.nationality;
   };
 
   const handleSubmit = async () => {
     if (!canProceed()) return;
 
-    // TODO: Save profile to backend
-    // POST /api/profiles
-    // Body: { walletAddress, ...profileData }
-    // Backend must link this profile to the wallet address
-    console.log("Saving profile for wallet:", walletAddress, profileData);
+    setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      // Call backend API to save profile
+      await setupProfile(profileData);
 
-    onProfileComplete(profileData);
+      toast({
+        title: "Profile Saved!",
+        description: "Your profile has been saved successfully.",
+      });
+
+      // Proceed to next step
+      onProfileComplete(profileData);
+      
+    } catch (error) {
+      console.error("Profile setup failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to Save Profile",
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,9 +79,14 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
             </div>
             <h1 className="text-xl font-bold text-gray-900">Carepanion</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-100 px-3 py-1.5 rounded-full">
-            <Check className="w-4 h-4" />
-            World ID Verified
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-100 px-3 py-1.5 rounded-full">
+              <Check className="w-4 h-4" />
+              Wallet Connected
+            </div>
+            <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-mono">
+              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </div>
           </div>
         </div>
 
@@ -102,11 +116,12 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
                     <button
                       key={option}
                       onClick={() => handleInputChange('gender', option)}
+                      disabled={isSubmitting}
                       className={`p-3 rounded-xl border-2 transition-all text-sm ${
                         profileData.gender === option
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
+                      } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="font-medium">{option}</span>
                     </button>
@@ -121,12 +136,13 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
                   {ageBrackets.map((bracket) => (
                     <button
                       key={bracket}
-                      onClick={() => handleInputChange('age', bracket)}
+                      onClick={() => handleInputChange('age_bracket', bracket)}
+                      disabled={isSubmitting}
                       className={`p-3 rounded-xl border-2 transition-all ${
-                        profileData.age === bracket
+                        profileData.age_bracket === bracket
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
+                      } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="font-medium">{bracket}</span>
                     </button>
@@ -144,15 +160,16 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
                   {hearingOptions.map((option) => (
                     <button
                       key={option}
-                      onClick={() => handleInputChange('hearingAbility', option)}
+                      onClick={() => handleInputChange('hearing_ability', option)}
+                      disabled={isSubmitting}
                       className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between ${
-                        profileData.hearingAbility === option
+                        profileData.hearing_ability === option
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
+                      } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="font-medium text-sm">{option}</span>
-                      {profileData.hearingAbility === option && <Check className="w-4 h-4 text-blue-600" />}
+                      {profileData.hearing_ability === option && <Check className="w-4 h-4 text-blue-600" />}
                     </button>
                   ))}
                 </div>
@@ -166,11 +183,12 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
                     <button
                       key={country.code}
                       onClick={() => handleInputChange('nationality', country.code)}
+                      disabled={isSubmitting}
                       className={`p-2 rounded-xl border-2 transition-all ${
                         profileData.nationality === country.code
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
+                      } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center gap-1.5">
                         <span className="text-lg">{country.flag}</span>
@@ -186,19 +204,28 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
           {/* Submit Button - Full Width */}
           <button
             onClick={handleSubmit}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isSubmitting}
             className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-3 mt-6 ${
-              canProceed()
+              canProceed() && !isSubmitting
                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-xl hover:scale-[1.02] transform duration-200'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span className="whitespace-nowrap">Continue to Voice Labeling</span>
-            <ChevronRight className="w-6 h-6 flex-shrink-0" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span>Saving Profile...</span>
+              </>
+            ) : (
+              <>
+                <span className="whitespace-nowrap">Continue to Voice Labeling</span>
+                <ChevronRight className="w-6 h-6 flex-shrink-0" />
+              </>
+            )}
           </button>
 
           <p className="text-xs text-gray-500 mt-4 text-center px-4">
-            Your data is encrypted and stored securely on World Chain. We never share personally identifiable information.
+            Your data is encrypted and stored securely. We never share personally identifiable information.
           </p>
         </div>
       </div>

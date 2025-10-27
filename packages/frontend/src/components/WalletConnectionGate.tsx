@@ -1,87 +1,71 @@
 import { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Lock, Heart, Mic, Users, Shield } from "lucide-react";
+import { Loader2, Heart, Mic, Users, Shield, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/carepanion-logo.png";
+import { login } from "@/services/api";
 
 interface WalletConnectionGateProps {
-  onWalletConnected: (userData: { address: string; balance: number }) => void;
+  onWalletConnected: (userData: { 
+    address: string; 
+    balance: number;
+    isNewUser: boolean;
+  }) => void;
 }
-
-// Placeholder function to fetch challenge from backend
-const fetchChallenge = async (publicKey: string): Promise<string> => {
-  // TODO: Implement API call to GET /api/auth/challenge?wallet=[publicKey]
-  // Backend must generate a unique, single-use message (nonce) for this user.
-  
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Return dummy challenge message
-  return `Welcome to Carepanion! Please sign this message to verify your wallet ownership.\n\nNonce: ${Math.random().toString(36).substring(7)}`;
-};
-
-// Placeholder function to verify signature with backend
-const verifySignature = async (
-  message: string, 
-  signature: Uint8Array, 
-  publicKey: string
-): Promise<{ success: boolean; user?: { address: string; balance: number }; jwt?: string }> => {
-  // TODO: Implement API call to POST /api/auth/verify
-  // Body should include: { message, signature: base64(signature), publicKey }
-  // Backend must verify the signature, create a JWT, fetch user balance, and return session data.
-  
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Return dummy verification result
-  return {
-    success: true,
-    user: {
-      address: publicKey,
-      balance: 1250
-    },
-    jwt: 'dummy.jwt.token'
-  };
-};
 
 const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
-  const { publicKey, connect, signMessage } = useWallet();
+  const [walletInput, setWalletInput] = useState("");
   const { toast } = useToast();
 
   const handleWalletLogin = async () => {
+    // Validate wallet address input
+    const trimmedWallet = walletInput.trim();
+    
+    if (!trimmedWallet) {
+      toast({
+        variant: "destructive",
+        title: "Wallet Address Required",
+        description: "Please enter your Solana wallet address",
+      });
+      return;
+    }
+
+    // Basic validation (Solana addresses are typically 32-44 characters)
+    if (trimmedWallet.length < 32) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Wallet Address",
+        description: "Please enter a valid Solana wallet address",
+      });
+      return;
+    }
+
     setIsConnecting(true);
     
     try {
-      // 1. Create a hardcoded, dummy user object.
-      const mockUser = {
-        address: '5xAbc...789Yz', // A fake, truncated wallet address
-        balance: 1250 // A fake token balance
-      };
-
-      // 2. Add a TODO comment for future implementation.
-      // TODO: This is a mock login. Replace with real Solana Wallet Adapter and SIWS logic.
-
-      // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
+      // Call backend login API
+      const response = await login(trimmedWallet);
+      
       toast({
         title: "Login Successful",
-        description: `Welcome! Your balance: ${mockUser.balance} CARE`,
+        description: response.is_new_user 
+          ? "Welcome! Please complete your profile." 
+          : "Welcome back!",
       });
 
-      // 3. Immediately call the onWalletConnected prop to proceed.
-      onWalletConnected(mockUser);
+      // Pass user data to parent component
+      onWalletConnected({
+        address: trimmedWallet,
+        balance: 0, // You can fetch real balance from blockchain if needed
+        isNewUser: response.is_new_user
+      });
       
     } catch (error) {
       console.error("Wallet login failed:", error);
       toast({
         variant: "destructive",
-        title: "Unexpected Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : "Unable to connect to server",
       });
     } finally {
       setIsConnecting(false);
@@ -112,17 +96,37 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
           <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100">
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium mb-3">
               <Globe className="w-4 h-4" />
-              Verified by World ID
+              Web3 Data Platform
             </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Help Build Better Eldercare AI
             </h2>
-            <p className="text-base text-gray-600 mb-3">
+            <p className="text-base text-gray-600 mb-4">
               Your voice helps companion robots understand comfort, clarity, and emotional nuance—making eldercare more empathetic and effective.
-            </p>            <button
+            </p>
+            
+            {/* Wallet Input */}
+            <div className="mb-3">
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Solana Wallet Address
+              </label>
+              <input
+                type="text"
+                value={walletInput}
+                onChange={(e) => setWalletInput(e.target.value)}
+                placeholder="Enter your wallet address (e.g., 5xot9PAtGJgL...)"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none text-sm"
+                disabled={isConnecting}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                For testing: Use any string (e.g., "test_wallet_123")
+              </p>
+            </div>
+
+            <button
               onClick={handleWalletLogin}
-              disabled={isConnecting}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold text-base hover:shadow-lg transition-all flex items-center justify-center gap-2 mb-4"
+              disabled={isConnecting || !walletInput.trim()}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold text-base hover:shadow-lg transition-all flex items-center justify-center gap-2 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isConnecting ? (
                 <>
@@ -132,7 +136,7 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
               ) : (
                 <>
                   <Shield className="w-5 h-5" />
-                  Verify with World ID
+                  Login with Wallet
                 </>
               )}
             </button>
@@ -147,7 +151,7 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
               <div className="bg-gray-50 rounded-xl p-3">
                 <h4 className="font-semibold text-gray-900 mb-1">🔒 Data Security</h4>
                 <p className="text-sm text-gray-600">
-                  All labels stored on World Chain. No personally identifiable information shared without consent.
+                  All labels stored securely. No personally identifiable information shared without consent.
                 </p>
               </div>
             </div>
@@ -163,12 +167,12 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-3xl border-2 border-purple-200">
               <Users className="w-12 h-12 text-purple-600 mb-4" />
               <h3 className="text-2xl font-semibold text-gray-900 mb-3">Privacy Protected</h3>
-              <p className="text-gray-600">World ID verification without revealing personal identity</p>
+              <p className="text-gray-600">Wallet-based authentication without revealing personal identity</p>
             </div>
             <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-3xl border-2 border-pink-200">
               <Heart className="w-12 h-12 text-pink-600 mb-4" />
               <h3 className="text-2xl font-semibold text-gray-900 mb-3">Earn Rewards</h3>
-              <p className="text-gray-600">Get tokens on World Chain for quality contributions</p>
+              <p className="text-gray-600">Get tokens for quality contributions to AI training</p>
             </div>
           </div>
         </div>
