@@ -1,0 +1,7 @@
+[workspace]
+members = ["packages/smart-contract"]
+resolver = "2"
+
+[workspace.metadata.cargo-lock]
+version = 3
+

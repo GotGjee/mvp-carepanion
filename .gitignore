@@ -25,6 +25,8 @@ lerna-debug.log*
 
 .env
 .env.*
+packages\smart-contract\solana-release-x86_64-unknown-linux-gnu.tar.bz2
+packages\backend\.env
 !.env.example
 
 __pycache__/

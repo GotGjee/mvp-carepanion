@@ -1,4 +1,5 @@
 {
+  "packageManager": "pnpm@9.12.2",
   "name": "carepanion-monorepo",
   "version": "1.0.0",
   "private": true,
@@ -11,9 +12,14 @@
     "packages/smart-contract"
   ],
   "scripts": {
-    "dev:frontend": "npm run dev --workspace=packages/frontend",
-    "dev:backend": "npm run dev --workspace=packages/backend",
-    "build:frontend": "npm run build --workspace=packages/frontend",
-    "test:contract": "npm test --workspace=packages/smart-contract"
+    "dev": "concurrently \"pnpm --filter packages/frontend dev\" \"pnpm --filter packages/backend dev\"",
+    "build": "pnpm --filter packages/frontend build && pnpm --filter packages/backend build",
+    "test": "pnpm --filter packages/smart-contract test"
+  },
+  "dependencies": {
+    "psql": "^0.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
