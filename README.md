@@ -1,130 +1,181 @@
-# 🤖 Carepanion - Empathy-Powered Eldercare AI
+# 🤖 Carepanion — Empathy-Powered Eldercare through AI & Blockchain
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-38B2AC.svg)](https://tailwindcss.com/)
-[![Vite](https://img.shields.io/badge/Vite-4.5.0-646CFF.svg)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.0-black.svg)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
+[![Solana](https://img.shields.io/badge/Solana-Web3-9945FF.svg)](https://solana.com/)
 
-Carepanion is an innovative platform that leverages AI and blockchain technology to enhance eldercare through empathetic voice interactions. By collecting and labeling voice samples, we're building AI models that help companion robots better understand and respond to elderly users' needs.
+**Carepanion** is an AI-powered platform that combines **empathetic voice technology** with **blockchain-based incentives** to improve the quality of eldercare.
+By collecting, labeling, and analyzing real voice samples from users, Carepanion trains emotion-aware AI models to help companion robots respond more compassionately — while rewarding contributors transparently on-chain.
 
-![Carepanion Screenshot](screenshots/preview.png)
+---
 
-## ✨ Features
+## 🧩 System Overview
 
-- 🔒 **Secure Authentication**: World ID integration for privacy-preserving verification
-- 👥 **Profile Management**: Customizable user profiles with demographic information
-- 🎯 **Voice Labeling Interface**: Intuitive UI for rating voice characteristics
-- 💎 **Blockchain Integration**: Transparent reward system using World Chain
-- 📊 **Real-time Progress Tracking**: Monitor your contribution and rewards
-- 🌐 **Global Impact**: Help improve eldercare AI for users worldwide
+```
+carepanion/
+├── frontend/          # React + Next.js user interface
+├── backend/           # FastAPI / Node.js API server
+├── smartcontract/     # Solana smart contracts for rewards & verification
+├── shared/            # Common interfaces, constants, and utilities
+├── scripts/           # Deployment and automation scripts
+└── README.md
+```
+
+---
+
+## ✨ Core Features
+
+* 🔐 **Secure Authentication** — Wallet-based identity using Solana
+* 🧠 **AI Voice Labeling** — Empathy-based annotation system for eldercare AI
+* 💎 **Blockchain Rewards** — Solana smart contracts for transparent contributor rewards
+* 🧾 **Data Management Backend** — Secure API for storing and validating voice metadata
+* 📈 **Progress & Reward Dashboard** — Real-time tracking of contributions and token earnings
+* 🌍 **Open Impact** — Contributing to a global dataset that improves care robotics worldwide
+
+---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 1️⃣ Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn
-- A modern web browser
+* Node.js v18+
+* Python 3.10+
+* Solana CLI
+* Git
 
-### Installation
+---
 
-1. Clone the repository:
+### 2️⃣ Installation
+
+Clone the repository:
+
 ```bash
 git clone https://github.com/GotGjee/mvp-carepanion.git
 cd mvp-carepanion
 ```
 
-2. Install dependencies:
+#### Frontend Setup
+
 ```bash
+cd frontend
 npm install
-# or
-yarn install
-```
-
-3. Create a local environment file:
-```bash
 cp .env.example .env.local
-```
-
-4. Start the development server:
-```bash
 npm run dev
-# or
-yarn dev
+# runs on http://localhost:3000
 ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
+#### Backend Setup
 
-## 🏗️ Project Structure
-
-```
-mvp-carepanion/
-├── src/
-│   ├── assets/        # Static assets and images
-│   ├── components/    # Reusable React components
-│   │   ├── ui/       # UI component library
-│   │   └── ...
-│   ├── hooks/        # Custom React hooks
-│   ├── lib/          # Utility functions and helpers
-│   └── pages/        # Main application pages
-├── public/           # Public static files
-├── .env.example      # Environment variables template
-├── package.json      # Project dependencies and scripts
-└── README.md         # Project documentation
+```bash
+cd backend
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn main:app --reload
+# runs on http://localhost:8000
 ```
 
-## 🛠️ Built With
+#### Smart Contract Deployment
 
-- [React](https://reactjs.org/) - Frontend framework
-- [TypeScript](https://www.typescriptlang.org/) - Programming language
-- [Vite](https://vitejs.dev/) - Build tool
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [Solana](https://solana.com/) - Blockchain platform
-- [World ID](https://worldcoin.org/) - Privacy-preserving authentication
-- [Lucide Icons](https://lucide.dev/) - Icon library
+```bash
+cd smartcontract
+anchor build
+anchor deploy
+```
+
+---
+
+## 🧠 Architecture
+
+```
+┌────────────────────────────┐
+│        Frontend (Next.js)  │
+│  - React + Tailwind UI     │
+│  - Solana wallet connect   │
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│     Backend API (FastAPI)  │
+│  - Voice data management   │
+│  - IPFS / DB storage       │
+│  - Token reward logic      │
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│   Smart Contract (Solana)  │
+│  - Reward distribution     │
+│  - Transparent ledger      │
+└────────────────────────────┘
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer          | Technology                                   | Purpose                               |
+| -------------- | -------------------------------------------- | ------------------------------------- |
+| **Frontend**   | Next.js 15, React 18, Tailwind CSS           | User interface & dashboard            |
+| **Backend**    | FastAPI / Node.js                            | Data API, verification, orchestration |
+| **Blockchain** | Solana, Anchor Framework                     | On-chain reward system                |
+| **AI/ML**      | Python + Whisper / Emotion Models *(future)* | Voice emotion recognition             |
+| **Storage**    | PostgreSQL / IPFS                            | Secure data persistence               |
+
+---
 
 ## 🌱 Contributing
 
-We welcome contributions! Please follow these steps:
+We welcome open-source contributions!
+To contribute:
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a new branch (`git checkout -b feature/your-feature`)
+3. Commit changes (`git commit -m "Add your feature"`)
+4. Push and submit a PR
 
-For major changes, please open an issue first to discuss what you would like to change.
+Please ensure all code follows the project’s TypeScript & Python style guidelines.
 
-## 📝 Development Guidelines
+---
 
-- Follow the TypeScript style guide
-- Write meaningful commit messages
-- Keep components modular and reusable
-- Add appropriate comments and documentation
-- Test your changes thoroughly
-- Update documentation when necessary
+## 🧭 Development Principles
+
+* Write modular and reusable components
+* Ensure cross-layer type safety
+* Document major functions and API endpoints
+* Add unit tests for new features
+* Keep commits atomic and descriptive
+* Maintain consistency between frontend, backend, and smart contract logic
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).
+
+---
 
 ## 🙏 Acknowledgments
 
-- [shadcn/ui](https://ui.shadcn.com/) for beautiful UI components
-- [Radix UI](https://www.radix-ui.com/) for accessible component primitives
-- The entire open-source community
+* [shadcn/ui](https://ui.shadcn.com/) for the elegant component framework
+* [Solana Foundation](https://solana.com/) for decentralized infrastructure
+* [OpenAI](https://openai.com/) for advancing empathetic AI research
 
-## 🤝 Contact
+---
 
-GotGjee - [@GotGjee](https://github.com/GotGjee)
+## 🧭 Roadmap
 
-Project Link: [https://github.com/GotGjee/mvp-carepanion](https://github.com/GotGjee/mvp-carepanion)
+* [ ] Voice Recording & Upload Module
+* [ ] Emotion Recognition Model Integration
+* [ ] Reward Claim Portal on Solana
+* [ ] Multi-language Localization
+* [ ] Mobile App Development
+* [ ] IPFS Integration for Decentralized Storage
+* [ ] AI Feedback Loop for Model Fine-tuning
 
-## 🚧 Roadmap
+---
 
-- [ ] Add voice recording feature
-- [ ] Implement real-time AI analysis
-- [ ] Expand language support
-- [ ] Mobile app development
-- [ ] Integration with more eldercare platforms
+**Developed with ❤️ by Carepanion Team**
+
+> Empowering empathy through technology.

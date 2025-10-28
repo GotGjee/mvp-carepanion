@@ -1,170 +1,123 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import UserProfileDropdown from "@/components/UserProfileDropdown";
-import { Play, Pause, Volume2, Mic, Heart, ChevronRight, Check, MessageSquare } from "lucide-react";
+import { Play, Pause, Volume2, Mic, Heart, ChevronRight, MessageSquare, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { getNextAudio, submitLabel, AudioResponse, LabelSubmission } from "@/services/api";
 
-// Mock data types
-interface AudioRecording {
-  id: string;
-  filename: string;
-  duration: number;
-  timeAgo: string;
-  status: "pending" | "labeled" | "skipped";
-}
-
-interface EmotionLabel {
-  primary: string;
-  comfortLevel: number;
-  emotionalIntensity: number;
-  clarityOfSpeech: number;
-  appropriatenessForElderly: number;
-  perceivedEmpathy: number;
-  speakingRate: string;
-  genderPerceived: string;
-  agePerceived: string;
-  culturalFit: string;
-  accent: string;
-}
-
-// Props passed from parent
 interface DataLabelingInterfaceProps {
   walletAddress: string;
   tokenBalance: number;
   onLogout: () => void;
 }
 
-// Helper to create mock recordings
-const createMockRecordings = (): AudioRecording[] => {
-  const items: AudioRecording[] = [];
-  for (let i = 1; i <= 20; i++) {
-    const id = `rec_${String(i).padStart(3, "0")}`;
-    const duration = Math.floor(Math.random() * 120) + 3;
-    const minutesAgo = Math.floor(Math.random() * 180);
-    const timeAgo = minutesAgo < 60 ? `${minutesAgo} min ago` : `${Math.floor(minutesAgo / 60)} hours ago`;
-    const status: AudioRecording["status"] = i % 7 === 0 ? "labeled" : "pending";
-    items.push({ id, filename: `Voice Recording ${i}`, duration, timeAgo, status });
-  }
-  return items;
-};
-
-// Simple waveform visualization component
-const WaveformThumbnail = () => (
-  <div className="flex items-center gap-px h-8">
-    {Array.from({ length: 30 }).map((_, i) => (
-      <div key={i} className="w-0.5 bg-muted-foreground/30 rounded-full" style={{ height: `${Math.random() * 100}%` }} />
-    ))}
-  </div>
-);
-
-const WaveformDisplay = () => (
-  <div className="flex items-center justify-center gap-px h-16">
-    {Array.from({ length: 100 }).map((_, i) => (
-      <div key={i} className="w-1 bg-muted-foreground/40 rounded-full" style={{ height: `${Math.random() * 100}%` }} />
-    ))}
-  </div>
-);
-
 const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLabelingInterfaceProps) => {
-  const initialRecordings = createMockRecordings();
+  const { toast } = useToast();
   
-  // Recordings state
-  const [recordings, setRecordings] = useState<AudioRecording[]>(initialRecordings);
-  const [currentRecordingId, setCurrentRecordingId] = useState<string | null>(() => {
-    const firstPending = initialRecordings.find((r) => r.status === "pending");
-    return firstPending ? firstPending.id : null;
-  });
-
-  // UI state
+  // Audio state
+  const [currentAudio, setCurrentAudio] = useState<AudioResponse | null>(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedEmotion, setSelectedEmotion] = useState<string>("");
-  const [comfortLevel, setComfortLevel] = useState<number[]>([0]);
-  const [emotionalIntensity, setEmotionalIntensity] = useState<number[]>([0]);
-  const [clarityOfSpeech, setClarityOfSpeech] = useState<number[]>([0]);
-  const [appropriatenessForElderly, setAppropriatenessForElderly] = useState<number[]>([0]);
-  const [perceivedEmpathy, setPerceivedEmpathy] = useState<number[]>([0]);
-  const [speakingRate, setSpeakingRate] = useState<string>("");
-  const [genderPerceived, setGenderPerceived] = useState<string>("");
-  const [agePerceived, setAgePerceived] = useState<string>("");
-  const [culturalFit, setCulturalFit] = useState<string>("");
-  const [accent, setAccent] = useState<string>("");
-  const [filterValue, setFilterValue] = useState<string>("all");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form state
+  const [comfortLevel, setComfortLevel] = useState(0);
+  const [clarity, setClarity] = useState(0);
+  const [speakingRate, setSpeakingRate] = useState<"Slow" | "Medium" | "Fast" | "">("");
+  const [perceivedEmpathy, setPerceivedEmpathy] = useState<"Low" | "Medium" | "High" | "">("");
+  const [notes, setNotes] = useState("");
+  const [labelCount, setLabelCount] = useState(0);
 
-  const currentRecording = recordings.find((r) => r.id === currentRecordingId) || null;
+  // Fetch next audio on mount and after submission
+  const fetchNextAudio = async () => {
+    setIsLoadingAudio(true);
+    try {
+      const audio = await getNextAudio();
+      setCurrentAudio(audio);
+    } catch (error) {
+      console.error("Failed to fetch audio:", error);
+      toast({
+        variant: "destructive",
+        title: "No More Audio Files",
+        description: error instanceof Error ? error.message : "All audio files have been labeled!",
+      });
+      setCurrentAudio(null);
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
 
-  const filteredRecordings = recordings.filter((r) => {
-    if (filterValue === "all") return true;
-    return r.status === (filterValue as AudioRecording["status"]);
-  });
+  useEffect(() => {
+    fetchNextAudio();
+  }, []);
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
+    // TODO: Implement actual audio playback
+  };
+
+  const resetForm = () => {
+    setComfortLevel(0);
+    setClarity(0);
+    setSpeakingRate("");
+    setPerceivedEmpathy("");
+    setNotes("");
+    setIsPlaying(false);
   };
 
   const handleSaveAndNext = async () => {
-    if (!currentRecordingId) return;
+    if (!currentAudio) return;
+    if (comfortLevel === 0 || clarity === 0 || !speakingRate || !perceivedEmpathy) {
+      toast({
+        variant: "destructive",
+        title: "Incomplete Form",
+        description: "Please fill in all required fields",
+      });
+      return;
+    }
 
-    const label: EmotionLabel = {
-      primary: selectedEmotion,
-      comfortLevel: comfortLevel[0],
-      emotionalIntensity: emotionalIntensity[0],
-      clarityOfSpeech: clarityOfSpeech[0],
-      appropriatenessForElderly: appropriatenessForElderly[0],
-      perceivedEmpathy: perceivedEmpathy[0],
-      speakingRate,
-      genderPerceived,
-      agePerceived,
-      culturalFit,
-      accent,
-    };
+    setIsSubmitting(true);
 
-    console.log("Saving label:", label, "for recording:", currentRecordingId);
+    try {
+      // Prepare label data
+      const labelData: LabelSubmission = {
+        audio_id: currentAudio.id,
+        comfort_level: comfortLevel,
+        clarity: clarity,
+        speaking_rate: speakingRate as "Slow" | "Medium" | "Fast",
+        perceived_empathy: perceivedEmpathy as "Low" | "Medium" | "High",
+        notes: notes || undefined
+      };
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300));
+      // Submit to backend
+      await submitLabel(labelData);
 
-    // Update recording status to 'labeled' and advance to next pending
-    setRecordings((prev) => {
-      const updated = prev.map((r) => 
-        r.id === currentRecordingId ? { ...r, status: "labeled" as AudioRecording["status"] } : r
-      );
-      const next = updated.find((r) => r.status === "pending" && r.id !== currentRecordingId);
-      setCurrentRecordingId(next ? next.id : null);
-      return updated;
-    });
+      toast({
+        title: "Label Submitted!",
+        description: "Thank you for your contribution.",
+      });
 
-    // Reset form fields
-    setSelectedEmotion("");
-    setComfortLevel([0]);
-    setEmotionalIntensity([0]);
-    setClarityOfSpeech([0]);
-    setAppropriatenessForElderly([0]);
-    setPerceivedEmpathy([0]);
-    setSpeakingRate(""); 
-    setGenderPerceived("");
-    setAgePerceived("");
-    setCulturalFit("");
-    setAccent("");
-    
-    // Reset UI selections for Speaking Rate and Perceived Empathy
-    const speakingRateButtons = document.querySelectorAll('[data-speaking-rate]');
-    speakingRateButtons.forEach(button => {
-      if (button instanceof HTMLElement) {
-        button.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-900');
-        button.classList.add('border-gray-200', 'text-gray-700');
-      }
-    });
+      // Increment label count
+      setLabelCount(prev => prev + 1);
 
-    const empathyButtons = document.querySelectorAll('[data-perceived-empathy]');
-    empathyButtons.forEach(button => {
-      if (button instanceof HTMLElement) {
-        button.classList.remove('border-purple-600', 'bg-purple-50', 'text-purple-900');
-        button.classList.add('border-gray-200', 'text-gray-700');
-      }
-    });
+      // Reset form
+      resetForm();
+
+      // Fetch next audio
+      await fetchNextAudio();
+
+    } catch (error) {
+      console.error("Failed to submit label:", error);
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const [labelCount, setLabelCount] = useState(0);
+  const canSubmit = comfortLevel > 0 && clarity > 0 && speakingRate && perceivedEmpathy;
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">
@@ -194,7 +147,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
           <div className="flex items-center gap-2 mb-1">
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
             <div className="h-2 flex-1 bg-blue-600 rounded-full" />
-            <div className="h-2 flex-1 bg-gray-200 rounded-full" />
+            <div className="h-2 flex-1 bg-blue-600 rounded-full" />
           </div>
           <p className="text-sm text-gray-600">Step 3 of 3: Voice Labeling</p>
         </div>
@@ -207,59 +160,71 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
               <h2 className="text-xl font-bold text-gray-900 mb-2">Label Voice Sample</h2>
               <p className="text-sm text-gray-600 mb-6">Listen to the audio clip and rate the voice characteristics.</p>
 
-              {/* Audio Player */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 mb-4 border-2 border-blue-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">
-                        {currentRecording ? currentRecording.filename : "Sample #1247"}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {currentRecording ? `${currentRecording.duration} seconds` : "15 seconds"}
-                      </p>
+              {isLoadingAudio ? (
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 mb-4 border-2 border-blue-100 flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-3" />
+                    <p className="text-gray-600">Loading audio...</p>
+                  </div>
+                </div>
+              ) : currentAudio ? (
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 mb-4 border-2 border-blue-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Volume2 className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="font-semibold text-sm text-gray-900">
+                          Audio #{currentAudio.id}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {currentAudio.duration_seconds} seconds
+                        </p>
+                      </div>
+                    </div>
+                    <Mic className="w-5 h-5 text-purple-600" />
+                  </div>
+                  
+                  {/* Waveform */}
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <div className="flex items-center gap-1 h-12 justify-center">
+                      {[...Array(30)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-1 rounded-full transition-all ${
+                            isPlaying ? 'bg-blue-600 animate-pulse' : 'bg-gray-300'
+                          }`}
+                          style={{
+                            height: `${Math.random() * 60 + 20}%`,
+                            animationDelay: `${i * 50}ms`
+                          }}
+                        />
+                      ))}
                     </div>
                   </div>
-                  <Mic className="w-5 h-5 text-purple-600" />
-                </div>
-                
-                {/* Waveform */}
-                <div className="bg-white rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-1 h-12 justify-center">
-                    {[...Array(30)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-1 rounded-full transition-all ${
-                          isPlaying ? 'bg-blue-600 animate-pulse' : 'bg-gray-300'
-                        }`}
-                        style={{
-                          height: `${Math.random() * 60 + 20}%`,
-                          animationDelay: `${i * 50}ms`
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
 
-                <button
-                  onClick={handlePlayPause}
-                  disabled={!currentRecording}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isPlaying ? (
-                    <>
-                      <Pause className="w-5 h-5" />
-                      Pause
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-5 h-5" />
-                      Play Audio
-                    </>
-                  )}
-                </button>
-              </div>
+                  <button
+                    onClick={handlePlayPause}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  >
+                    {isPlaying ? (
+                      <>
+                        <Pause className="w-5 h-5" />
+                        Pause
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-5 h-5" />
+                        Play Audio
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 mb-4 border-2 border-gray-200 text-center">
+                  <p className="text-gray-600 font-medium">No more audio files available</p>
+                  <p className="text-sm text-gray-500 mt-2">You've completed all available labels!</p>
+                </div>
+              )}
             </div>
 
             {/* Info Card */}
@@ -286,19 +251,20 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-gray-900">Comfort Level</label>
                   <span className="text-xs text-gray-600">
-                    {comfortLevel[0] > 0 ? comfortLevel[0] + ' / 10' : 'Not rated'}
+                    {comfortLevel > 0 ? comfortLevel + ' / 5' : 'Not rated'}
                   </span>
                 </div>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
-                      onClick={() => setComfortLevel([rating * 2])}
+                      onClick={() => setComfortLevel(rating)}
+                      disabled={isSubmitting || !currentAudio}
                       className={`flex-1 py-3 rounded-xl border-2 transition-all font-semibold ${
-                        comfortLevel[0] === rating * 2
+                        comfortLevel === rating
                           ? 'border-blue-600 bg-blue-600 text-white'
                           : 'border-gray-200 hover:border-blue-300 text-gray-700'
-                      }`}
+                      } ${(isSubmitting || !currentAudio) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {rating}
                     </button>
@@ -315,19 +281,20 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-semibold text-gray-900">Clarity</label>
                   <span className="text-xs text-gray-600">
-                    {clarityOfSpeech[0] > 0 ? Math.round(clarityOfSpeech[0] / 2) + ' / 5' : 'Not rated'}
+                    {clarity > 0 ? clarity + ' / 5' : 'Not rated'}
                   </span>
                 </div>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
-                      onClick={() => setClarityOfSpeech([rating * 2])}
+                      onClick={() => setClarity(rating)}
+                      disabled={isSubmitting || !currentAudio}
                       className={`flex-1 py-3 rounded-xl border-2 transition-all font-semibold ${
-                        clarityOfSpeech[0] === rating * 2
+                        clarity === rating
                           ? 'border-purple-600 bg-purple-600 text-white'
                           : 'border-gray-200 hover:border-purple-300 text-gray-700'
-                      }`}
+                      } ${(isSubmitting || !currentAudio) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {rating}
                     </button>
@@ -343,41 +310,39 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">Speaking Rate</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {['slow', 'medium', 'fast'].map((rate) => (
+                  {(['Slow', 'Medium', 'Fast'] as const).map((rate) => (
                     <button
                       key={rate}
-                      data-speaking-rate={rate}
                       onClick={() => setSpeakingRate(rate)}
+                      disabled={isSubmitting || !currentAudio}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         speakingRate === rate
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
+                      } ${(isSubmitting || !currentAudio) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <span className="font-medium text-sm capitalize">{rate}</span>
+                      <span className="font-medium text-sm">{rate}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Perceived Empathy as Volume */}
+              {/* Perceived Empathy */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">Perceived Empathy</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {['Low', 'Medium', 'High'].map((vol, idx) => (
+                  {(['Low', 'Medium', 'High'] as const).map((level) => (
                     <button
-                      key={vol}
-                      data-perceived-empathy={vol.toLowerCase()}
-                      onClick={() => setPerceivedEmpathy([idx === 0 ? 3 : idx === 1 ? 6 : 9])}
+                      key={level}
+                      onClick={() => setPerceivedEmpathy(level)}
+                      disabled={isSubmitting || !currentAudio}
                       className={`p-3 rounded-xl border-2 transition-all ${
-                        (perceivedEmpathy[0] === 3 && idx === 0) ||
-                        (perceivedEmpathy[0] === 6 && idx === 1) ||
-                        (perceivedEmpathy[0] === 9 && idx === 2)
+                        perceivedEmpathy === level
                           ? 'border-purple-600 bg-purple-50 text-purple-900'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
+                      } ${(isSubmitting || !currentAudio) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <span className="font-medium text-sm">{vol}</span>
+                      <span className="font-medium text-sm">{level}</span>
                     </button>
                   ))}
                 </div>
@@ -393,10 +358,11 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
               <div className="relative">
                 <MessageSquare className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
                 <textarea
-                  value={accent}
-                  onChange={(e) => setAccent(e.target.value)}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  disabled={isSubmitting || !currentAudio}
                   placeholder="Anything notable about accent, tone, background noise, or emotion?"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none resize-none"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                   rows={2}
                 />
               </div>
@@ -404,23 +370,29 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
             {/* Submit Button */}
             <button
-              onClick={() => {
-                handleSaveAndNext();
-                setLabelCount(prev => prev + 1);
-              }}
-              disabled={comfortLevel[0] === 0 || clarityOfSpeech[0] === 0}
+              onClick={handleSaveAndNext}
+              disabled={!canSubmit || isSubmitting || !currentAudio}
               className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-2 mt-6 ${
-                comfortLevel[0] > 0 && clarityOfSpeech[0] > 0
+                canSubmit && !isSubmitting && currentAudio
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              Submit Label & Continue
-              <ChevronRight className="w-5 h-5" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Label & Continue
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </button>
 
             <p className="text-xs text-gray-500 mt-4 text-center">
-              Your label will be recorded on World Chain and contribute to AI training
+              Your label will be recorded on Block Chain and contribute to AI training
             </p>
           </div>
         </div>
