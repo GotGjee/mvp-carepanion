@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.database import init_db, get_db, create_mock_audio_data
 from app.routers import auth, profile, label
 
@@ -23,6 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include routers
 app.include_router(auth.router)
 app.include_router(profile.router)
@@ -35,9 +38,9 @@ def startup_event():
     init_db()
     
     # Create mock audio data
-    db = next(get_db())
-    create_mock_audio_data(db)
-    db.close()
+    # db = next(get_db())
+    # create_mock_audio_data(db)
+    # db.close()
     
     print("Carepanion API is ready! 🚀")
 
