@@ -25,7 +25,7 @@ By collecting, labeling, and analyzing real voice samples from users, Carepanion
 
 ## 🧩 System Overview
 
-```
+
 ### High-Level Architecture
 ```
 ┌─────────────┐         ┌──────────────┐         ┌─────────────┐
@@ -41,6 +41,7 @@ By collecting, labeling, and analyzing real voice samples from users, Carepanion
          │Solana Blockchain│
          │ (Smart Contract)│
          └─────────────────┘
+```
 ---
 
 ## ✨ Core Features
@@ -220,6 +221,8 @@ signature = await solana_client.send_transaction(instruction)
 ---
 
 ## 🧭 Repository Structure
+
+```
 carepanion/
 ├──packages/
     ├── frontend/           # React + Solana wallet adapter
