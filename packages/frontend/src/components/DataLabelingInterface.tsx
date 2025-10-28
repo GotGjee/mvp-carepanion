@@ -48,7 +48,12 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
 
   useEffect(() => {
     fetchNextAudio();
-  }, []);
+    if (currentAudio) {
+      const audio = new Audio(currentAudio.file_url);
+      audio.play();
+      setIsPlaying(true);
+    }
+  }, [currentAudio]);
 
   const handlePlayPause = () => {
     if (!currentAudio) return;
