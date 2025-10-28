@@ -116,7 +116,7 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
               {isConnecting && (
                 <div className="mt-3 flex items-center justify-center gap-2 text-blue-600">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="text-sm">Logging in...</span>
+                  <span className="text-sm">Logging in....</span>
                 </div>
               )}
               
