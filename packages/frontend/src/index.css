@@ -1,10 +1,51 @@
+@import url('@solana/wallet-adapter-react-ui/styles.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
+
+
+/* Custom wallet adapter styling */
+.wallet-adapter-modal-wrapper {
+  z-index: 9999 !important;
+}
+
+.wallet-adapter-modal-container {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.wallet-adapter-modal {
+  background: white !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.wallet-adapter-modal-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.wallet-adapter-modal-list {
+  margin-top: 1rem !important;
+}
+
+.wallet-adapter-modal-list-more {
+  border-radius: 0.75rem !important;
+}
+
+.wallet-adapter-button {
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.wallet-adapter-button-trigger {
+  background: linear-gradient(to right, #2563eb, #9333ea) !important;
+}
 
 @layer base {
   :root {

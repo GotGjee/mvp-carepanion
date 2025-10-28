@@ -1,5 +1,7 @@
+// UserProfileDropdown.tsx
 import { useState } from "react";
 import { ChevronDown, LogOut, Wallet } from "lucide-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 interface UserProfileDropdownProps {
   walletAddress: string;
@@ -9,9 +11,25 @@ interface UserProfileDropdownProps {
 
 const UserProfileDropdown = ({ walletAddress, tokenBalance, onLogout }: UserProfileDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Truncate wallet address for display
+  const { disconnect } = useWallet(); // <-- ใช้สำหรับ disconnect wallet
+
+  // Truncate wallet address
   const displayAddress = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+
+  // ฟังก์ชัน logout แบบสมบูรณ์
+  const handleLogout = async () => {
+    setIsOpen(false);
+
+    try {
+      // Disconnect wallet จาก Solana provider
+      await disconnect();
+    } catch (err) {
+      console.error("Failed to disconnect wallet:", err);
+    }
+
+    // ล้าง state ของแอปเรา
+    onLogout();
+  };
 
   return (
     <div className="relative">
@@ -39,10 +57,7 @@ const UserProfileDropdown = ({ walletAddress, tokenBalance, onLogout }: UserProf
           </div>
           
           <button
-            onClick={() => {
-              setIsOpen(false);
-              onLogout();
-            }}
+            onClick={handleLogout} // <-- เรียก logout แบบสมบูรณ์
             className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-all flex items-center gap-3"
           >
             <LogOut className="w-4 h-4" />

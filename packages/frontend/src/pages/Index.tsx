@@ -1,70 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import WalletConnectionGate from "@/components/WalletConnectionGate";
-import ProfileSetup from "@/pages/ProfileSetup";
+import ProfileSetup from "@/components/ProfileSetup";
 import DataLabelingInterface from "@/components/DataLabelingInterface";
+import { logout as apiLogout } from "@/services/api";
+
+type AppStep = "login" | "profile" | "labeling";
 
 interface UserData {
   address: string;
   balance: number;
-}
-
-interface ProfileData {
-  gender: string;
-  age: string;
-  hearingAbility: string;
-  nationality: string;
+  isNewUser: boolean;
 }
 
 const Index = () => {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [hasProfile, setHasProfile] = useState<boolean>(false);
+  const [currentStep, setCurrentStep] = useState<AppStep>("login");
+  const [userData, setUserData] = useState<UserData | null>(null);
 
-  const handleWalletConnected = async (userData: UserData) => {
-    setUser(userData);
+  // Check if user is already logged in (has token)
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    const wallet = localStorage.getItem('wallet_address');
     
-    // TODO: Check if wallet address already has a profile
-    // GET /api/profiles?walletAddress=[userData.address]
-    // If profile exists, setHasProfile(true)
-    // For now, always show profile setup for new wallets
-    console.log("Checking profile for wallet:", userData.address);
-    
-    // Simulate API check
-    const profileExists = false; // TODO: Replace with actual API call
-    setHasProfile(profileExists);
+    if (token && wallet) {
+      // User is logged in, go to labeling
+      // In production, you should call getProfile() to check if profile is complete
+      setUserData({
+        address: wallet,
+        balance: 0,
+        isNewUser: false
+      });
+      setCurrentStep("labeling");
+    }
+  }, []);
+
+  const handleWalletConnected = (data: UserData) => {
+    setUserData(data);
+    if (data.isNewUser) {
+      setCurrentStep("profile");
+    } else {
+      setCurrentStep("labeling");
+    }
   };
 
-  const handleProfileComplete = (profileData: ProfileData) => {
-    console.log("Profile completed:", profileData);
-    setHasProfile(true);
+  const handleProfileComplete = () => {
+    setCurrentStep("labeling");
   };
 
   const handleLogout = () => {
-    setUser(null);
-    setHasProfile(false);
+    apiLogout();
+    setUserData(null);
+    setCurrentStep("login");
   };
 
-  // Not logged in - show welcome/login
-  if (!user) {
-    return <WalletConnectionGate onWalletConnected={handleWalletConnected} />;
-  }
-
-  // Logged in but no profile - show profile setup
-  if (!hasProfile) {
-    return (
-      <ProfileSetup 
-        walletAddress={user.address}
-        onProfileComplete={handleProfileComplete}
-      />
-    );
-  }
-
-  // Logged in and has profile - show labeling interface
   return (
-    <DataLabelingInterface 
-      walletAddress={user.address}
-      tokenBalance={user.balance}
-      onLogout={handleLogout}
-    />
+    <>
+      {currentStep === "login" && (
+        <WalletConnectionGate onWalletConnected={handleWalletConnected} />
+      )}
+      
+      {currentStep === "profile" && userData && (
+        <ProfileSetup
+          walletAddress={userData.address}
+          onProfileComplete={handleProfileComplete}
+        />
+      )}
+      
+      {currentStep === "labeling" && userData && (
+        <DataLabelingInterface
+          walletAddress={userData.address}
+          tokenBalance={userData.balance}
+          onLogout={handleLogout}
+        />
+      )}
+    </>
   );
 };
 

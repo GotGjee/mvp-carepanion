@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Loader2, Heart, Mic, Users, Shield, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/services/api";
@@ -14,28 +15,22 @@ interface WalletConnectionGateProps {
 
 const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
-  const [walletInput, setWalletInput] = useState("");
+  const { publicKey, connected } = useWallet();
   const { toast } = useToast();
 
-  const handleWalletLogin = async () => {
-    // Validate wallet address input
-    const trimmedWallet = walletInput.trim();
-    
-    if (!trimmedWallet) {
-      toast({
-        variant: "destructive",
-        title: "Wallet Address Required",
-        description: "Please enter your Solana wallet address",
-      });
-      return;
+  // Auto-login when wallet is connected
+  useEffect(() => {
+    if (connected && publicKey) {
+      handleWalletLogin();
     }
+  }, [connected, publicKey]);
 
-    // Basic validation (Solana addresses are typically 32-44 characters)
-    if (trimmedWallet.length < 32) {
+  const handleWalletLogin = async () => {
+    if (!publicKey) {
       toast({
         variant: "destructive",
-        title: "Invalid Wallet Address",
-        description: "Please enter a valid Solana wallet address",
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet first",
       });
       return;
     }
@@ -43,8 +38,10 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
     setIsConnecting(true);
     
     try {
+      const walletAddress = publicKey.toBase58();
+      
       // Call backend login API
-      const response = await login(trimmedWallet);
+      const response = await login(walletAddress);
       
       toast({
         title: "Login Successful",
@@ -55,7 +52,7 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
 
       // Pass user data to parent component
       onWalletConnected({
-        address: trimmedWallet,
+        address: walletAddress,
         balance: 0, // You can fetch real balance from blockchain if needed
         isNewUser: response.is_new_user
       });
@@ -105,43 +102,30 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
               Your voice helps companion robots understand comfort, clarity, and emotional nuance—making eldercare more empathetic and effective.
             </p>
             
-            {/* Wallet Input */}
+            {/* Wallet Connect Button */}
             <div className="mb-3">
               <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Solana Wallet Address
+                Connect Your Solana Wallet
               </label>
-              <input
-                type="text"
-                value={walletInput}
-                onChange={(e) => setWalletInput(e.target.value)}
-                placeholder="Enter your wallet address (e.g., 5xot9PAtGJgL...)"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none text-sm"
-                disabled={isConnecting}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                For testing: Use any string (e.g., "test_wallet_123")
+              
+              {/* Custom styled wallet button */}
+              <div className="wallet-adapter-button-wrapper">
+                <WalletMultiButton className="!w-full !bg-gradient-to-r !from-blue-600 !to-purple-600 !text-white !py-3 !rounded-xl !font-semibold !text-base hover:!shadow-lg !transition-all !flex !items-center !justify-center !gap-2" />
+              </div>
+              
+              {isConnecting && (
+                <div className="mt-3 flex items-center justify-center gap-2 text-blue-600">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="text-sm">Logging in...</span>
+                </div>
+              )}
+              
+              <p className="text-xs text-gray-500 mt-2">
+                Supported wallets: Phantom, Solflare, and more
               </p>
             </div>
 
-            <button
-              onClick={handleWalletLogin}
-              disabled={isConnecting || !walletInput.trim()}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold text-base hover:shadow-lg transition-all flex items-center justify-center gap-2 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-5 h-5" />
-                  Login with Wallet
-                </>
-              )}
-            </button>
-
-            <div className="space-y-3">
+            <div className="space-y-3 mt-6">
               <div className="bg-gray-50 rounded-xl p-3">
                 <h4 className="font-semibold text-gray-900 mb-1">🌍 Global Impact</h4>
                 <p className="text-sm text-gray-600">
@@ -177,6 +161,26 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
           </div>
         </div>
       </div>
+
+      {/* Custom CSS for wallet button */}
+      <style>{`
+        .wallet-adapter-button-wrapper .wallet-adapter-button {
+          width: 100% !important;
+          background: linear-gradient(to right, #2563eb, #9333ea) !important;
+          border-radius: 0.75rem !important;
+          padding: 0.75rem 1rem !important;
+          font-weight: 600 !important;
+          transition: all 0.2s !important;
+        }
+        
+        .wallet-adapter-button-wrapper .wallet-adapter-button:hover {
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .wallet-adapter-button-wrapper .wallet-adapter-button-start-icon {
+          margin-right: 0.5rem !important;
+        }
+      `}</style>
     </div>
   );
 };
