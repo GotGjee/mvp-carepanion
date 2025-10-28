@@ -51,6 +51,14 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
   }, []);
 
   const handlePlayPause = () => {
+    if (!currentAudio) return;
+
+    const audio = new Audio(currentAudio.file_url);
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
     setIsPlaying(!isPlaying);
     // TODO: Implement actual audio playback
   };
@@ -381,7 +389,7 @@ const DataLabelingInterface = ({ walletAddress, tokenBalance, onLogout }: DataLa
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Submitting...
+                  Submitting....
                 </>
               ) : (
                 <>
