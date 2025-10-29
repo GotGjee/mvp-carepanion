@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Loader2, Heart, Mic, Users, Shield, Globe } from "lucide-react";
+import { Loader2, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { login } from "@/services/api";
+import logo from "../assets/carepanion-logo1.png";
 
 interface WalletConnectionGateProps {
-  onWalletConnected: (userData: { 
-    address: string; 
+  onWalletConnected: (userData: {
+    address: string;
     balance: number;
     isNewUser: boolean;
   }) => void;
@@ -18,7 +18,6 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
   const { publicKey, connected } = useWallet();
   const { toast } = useToast();
 
-  // Auto-login when wallet is connected
   useEffect(() => {
     if (connected && publicKey) {
       handleWalletLogin();
@@ -36,33 +35,29 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
     }
 
     setIsConnecting(true);
-    
+
     try {
       const walletAddress = publicKey.toBase58();
       
-      // Call backend login API
-      const response = await login(walletAddress);
-      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       toast({
         title: "Login Successful",
-        description: response.is_new_user 
-          ? "Welcome! Please complete your profile." 
-          : "Welcome back!",
+        description: "Welcome back!",
       });
 
-      // Pass user data to parent component
       onWalletConnected({
         address: walletAddress,
-        balance: 0, // You can fetch real balance from blockchain if needed
-        isNewUser: response.is_new_user
+        balance: 0,
+        isNewUser: false
       });
-      
     } catch (error) {
       console.error("Wallet login failed:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error instanceof Error ? error.message : "Unable to connect to server",
+        description: "Unable to connect to server",
       });
     } finally {
       setIsConnecting(false);
@@ -70,115 +65,315 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Carepanion</h1>
-              <p className="text-sm text-gray-600">Empathy-Powered Eldercare AI</p>
+    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 flex items-center justify-center p-6 overflow-auto">
+      <div className="w-full max-w-xl my-auto">
+        {/* Main Card - Neomorphic Style with Better Contrast */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-[3rem] p-12 shadow-[20px_20px_60px_rgba(140,100,180,0.5),-20px_-20px_60px_rgba(255,255,255,0.95)] border-2 border-white/70">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-pink-200 to-purple-300 rounded-full flex items-center justify-center shadow-[inset_5px_5px_15px_rgba(160,100,200,0.4),inset_-5px_-5px_15px_rgba(255,255,255,0.9)]">
+               <img src={logo} alt="Project Logo" className="object-contain w-[130%] h-[130%]"/>
             </div>
           </div>
-          <Shield className="w-8 h-8 text-blue-600" />
-        </div>
 
-        {/* Main Horizontal Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          
-          {/* Left Column - Hero Content */}
-          <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 border border-gray-100">
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium mb-3">
-              <Globe className="w-4 h-4" />
-              Web3 Data Platform
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {/* Title */}
+          <h1 className="text-4xl font-bold text-center mb-3 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+            Carepanion
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-center text-purple-500 text-sm font-medium mb-8">
+            Empathy-Powered Eldercare AI
+          </p>
+
+          {/* Description */}
+          <div className="bg-white/50 rounded-3xl p-6 mb-8 shadow-[inset_5px_5px_15px_rgba(160,100,200,0.25),inset_-5px_-5px_15px_rgba(255,255,255,0.6)] border border-purple-200/30">
+            <h2 className="text-xl font-semibold text-purple-600 mb-3 text-center">
               Help Build Better Eldercare AI
             </h2>
-            <p className="text-base text-gray-600 mb-4">
-              Your voice helps companion robots understand comfort, clarity, and emotional nuance—making eldercare more empathetic and effective.
+            <p className="text-purple-600/90 text-center text-sm leading-relaxed">
+              Your voice helps companion robots understand comfort, clarity, and
+              emotional nuance—making eldercare more empathetic and effective.
             </p>
-            
-            {/* Wallet Connect Button */}
-            <div className="mb-3">
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Connect Your Solana Wallet
-              </label>
-              
-              {/* Custom styled wallet button */}
-              <div className="wallet-adapter-button-wrapper">
-                <WalletMultiButton className="!w-full !bg-gradient-to-r !from-blue-600 !to-purple-600 !text-white !py-3 !rounded-xl !font-semibold !text-base hover:!shadow-lg !transition-all !flex !items-center !justify-center !gap-2" />
-              </div>
-              
-              {isConnecting && (
-                <div className="mt-3 flex items-center justify-center gap-2 text-blue-600">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="text-sm">Logging in....</span>
-                </div>
-              )}
-              
-              <p className="text-xs text-gray-500 mt-2">
-                Supported wallets: Phantom, Solflare, and more
-              </p>
-            </div>
-
-            <div className="space-y-3 mt-6">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <h4 className="font-semibold text-gray-900 mb-1">🌍 Global Impact</h4>
-                <p className="text-sm text-gray-600">
-                  Starting in Thailand with hospital partners, expanding worldwide to help millions of seniors feel less lonely.
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <h4 className="font-semibold text-gray-900 mb-1">🔒 Data Security</h4>
-                <p className="text-sm text-gray-600">
-                  All labels stored securely. No personally identifiable information shared without consent.
-                </p>
-              </div>
-            </div>
           </div>
 
-          {/* Right Column - Feature Cards */}
+          {/* Wallet Section */}
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-3xl border-2 border-blue-200">
-              <Mic className="w-8 h-8 text-blue-600 mb-2" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Label Voice Samples</h3>
-              <p className="text-sm text-gray-600">Rate comfort, clarity, and speaking rate in short audio clips</p>
+            <label className="block text-center text-purple-600 font-semibold text-sm mb-4">
+              Connect Your Solana Wallet
+            </label>
+
+            {/* Wallet Button Container - Full Width */}
+            <div className="w-full flex">
+              <div className="relative w-full flex">
+                <div className="absolute -inset-1 bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 rounded-full blur-xl opacity-60"></div>
+                <div className="relative w-full bg-white/60 rounded-full shadow-[10px_10px_30px_rgba(140,100,180,0.4),-10px_-10px_30px_rgba(255,255,255,0.9)] p-1 flex">
+                  <WalletMultiButton className="w-full" />
+                </div>
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-3xl border-2 border-purple-200">
-              <Users className="w-12 h-12 text-purple-600 mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-900 mb-3">Privacy Protected</h3>
-              <p className="text-gray-600">Wallet-based authentication without revealing personal identity</p>
-            </div>
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-3xl border-2 border-pink-200">
-              <Heart className="w-12 h-12 text-pink-600 mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-900 mb-3">Earn Rewards</h3>
-              <p className="text-gray-600">Get tokens for quality contributions to AI training</p>
-            </div>
+
+            {isConnecting && (
+              <div className="flex items-center justify-center gap-2 text-purple-500 mt-4">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm font-medium">Logging in...</span>
+              </div>
+            )}
+
+            <p className="text-xs text-purple-500/70 text-center mt-4 font-medium">
+              Supported wallets: Phantom, Solflare, and more
+            </p>
           </div>
         </div>
+
+        {/* Bottom Text */}
+        <p className="text-center text-purple-600/70 text-xs mt-6 font-medium">
+          Web3 Data Platform for Eldercare AI Training
+        </p>
       </div>
 
-      {/* Custom CSS for wallet button */}
+      {/* Custom Wallet Adapter Styles */}
       <style>{`
-        .wallet-adapter-button-wrapper .wallet-adapter-button {
+        /* ===== WALLET BUTTON - FULL WIDTH 100% ===== */
+        .wallet-adapter-button-trigger {
           width: 100% !important;
-          background: linear-gradient(to right, #2563eb, #9333ea) !important;
-          border-radius: 0.75rem !important;
-          padding: 0.75rem 1rem !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          display: flex !important;
+          flex: 1 !important;
+          overflow: hidden !important;    
+          white-space: nowrap !important;
+          text-overflow: ellipsis !important; 
+        }
+
+        .wallet-adapter-button {
+          width: 280% !important;
+          min-width: 100% !important;
+          max-width: 281% !important;
+          flex: 1 !important;
+          background: linear-gradient(to right, #f9a8d4, #c084fc, #93c5fd) !important;
+          border: none !important;
           font-weight: 600 !important;
-          transition: all 0.2s !important;
+          padding: 1.1rem 2rem !important;
+          border-radius: 9999px !important;
+          box-shadow: inset 2px 2px 5px rgba(255,255,255,0.5), inset -2px -2px 5px rgba(160,100,200,0.3) !important;
+          transition: all 0.3s ease !important;
+          color: white !important;
+          font-size: 1rem !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-align: center !important;
+          overflow: hidden !important;    
+          white-space: nowrap !important;
+          text-overflow: ellipsis !important; 
         }
-        
-        .wallet-adapter-button-wrapper .wallet-adapter-button:hover {
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+
+        @media (max-width: 640px) {
+          .wallet-adapter-button {
+            width: 198% !important;
+          }
         }
-        
-        .wallet-adapter-button-wrapper .wallet-adapter-button-start-icon {
-          margin-right: 0.5rem !important;
+
+        .wallet-adapter-button:not([disabled]):hover {
+          transform: scale(0.98);
+          box-shadow: inset 4px 4px 10px rgba(160,100,200,0.4), inset -4px -4px 10px rgba(255,255,255,0.6) !important;
+        }
+
+        .wallet-adapter-button-start-icon {
+          margin-right: 0.75rem !important;
+          display: inline-flex !important;
+        }
+
+        /* ===== WALLET MODAL - CUSTOM SOFT UI ===== */
+        /* Modal Backdrop - TRUE CENTER */
+        .wallet-adapter-modal-wrapper {
+          position: fixed !important;
+          left: 37%; !important;
+          width: 100% !important;
+          height: 35% !important;
+          z-index: 9999 !important;
+          background: rgba(200, 180, 220, 0.5) !important;
+          backdrop-filter: blur(10px) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 1rem !important;
+          border-top-left-radius: 2rem !important; 
+          border-top-right-radius: 2rem !important;
+          border-bottom-left-radius: 2rem !important; 
+          border-bottom-right-radius: 2rem !important;
+        }
+
+        /* Modal Container - Compact Size, Centered, Auto Height */
+        .wallet-adapter-modal {
+          background: linear-gradient(135deg, rgba(255, 240, 250, 0.98), rgba(243, 232, 255, 0.98)) !important;
+          border-radius: 1.75rem !important;
+          padding: 1.5rem !important;
+          width: fit-content !important;  
+          height: fit-content !important; 
+          max-width: 90vw !important;  
+          max-height: 80vh !important; 
+          min-width: auto !important;
+          min-height: auto !important;
+          box-shadow: 20px 20px 60px rgba(140, 100, 180, 0.5), -20px -20px 60px rgba(255, 255, 255, 0.9), inset 2px 2px 10px rgba(255, 255, 255, 0.6) !important;
+          border: 2px solid rgba(255, 255, 255, 0.7) !important;
+          position: static !important;
+          margin: 0 auto !important;
+          left: auto !important;
+          right: auto !important;
+          top: auto !important;
+          bottom: auto !important;
+          transform: none !important;
+        }
+
+        /* Hide the title "Connect a wallet..." */
+        .wallet-adapter-modal-title {
+          display: none !important;
+        }
+
+        /* Close Button */
+        .wallet-adapter-modal-button-close {
+          position: absolute !important;
+          top: 1rem !important;
+          right: 1rem !important;
+          background: rgba(255, 255, 255, 0.8) !important;
+          border-radius: 50% !important;
+          width: 2rem !important;
+          height: 2rem !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          box-shadow: 5px 5px 15px rgba(160, 100, 200, 0.3), -5px -5px 15px rgba(255, 255, 255, 0.8) !important;
+          transition: all 0.2s ease !important;
+          border: none !important;
+          padding: 0 !important;
+          cursor: pointer !important;
+        }
+
+        .wallet-adapter-modal-button-close:hover {
+          background: rgba(255, 255, 255, 0.95) !important;
+          transform: scale(0.95) !important;
+        }
+
+        .wallet-adapter-modal-button-close svg {
+          width: 1rem !important;
+          height: 1rem !important;
+          color: #9333ea !important;
+        }
+
+        /* Wallet List - Compact */
+        .wallet-adapter-modal-list {
+          margin: 0 !important;
+          padding: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 0.65rem !important;
+          list-style: none !important;
+          max-height: none !important;
+          overflow-y: visible !important;
+        }
+
+        .wallet-adapter-modal-list-more {
+          display: none !important;
+        }
+
+        /* Individual Wallet Items */
+        .wallet-adapter-modal-list li {
+          margin: 0 !important;
+          padding: 0 !important;
+          list-style: none !important;
+          width: 100% !important;
+        }
+
+        /* Individual Wallet Button - Compact */
+        .wallet-adapter-modal-list .wallet-adapter-button {
+          width: 100% !important;
+          background: rgba(255, 255, 255, 0.85) !important;
+          border-radius: 1rem !important;
+          padding: 0.9rem 1.25rem !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          gap: 0.85rem !important;
+          box-shadow: 5px 5px 20px rgba(160, 100, 200, 0.25), -5px -5px 20px rgba(255, 255, 255, 0.8), inset 1px 1px 3px rgba(255, 255, 255, 0.6) !important;
+          transition: all 0.25s ease !important;
+          color: #7c3aed !important;
+          font-weight: 600 !important;
+          font-size: 0.95rem !important;
+          border: none !important;
+          text-align: left !important;
+          cursor: pointer !important;
+        }
+
+        .wallet-adapter-modal-list .wallet-adapter-button:hover {
+          background: rgba(255, 255, 255, 0.95) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 5px 5px 25px rgba(160, 100, 200, 0.35), -5px -5px 25px rgba(255, 255, 255, 0.9), inset 1px 1px 3px rgba(255, 255, 255, 0.7) !important;
+        }
+
+        /* Wallet Icon */
+        .wallet-adapter-modal-list .wallet-adapter-button-start-icon {
+          width: 2.5rem !important;
+          height: 2.5rem !important;
+          margin: 0 !important;
+          flex-shrink: 0 !important;
+        }
+
+        .wallet-adapter-modal-list .wallet-adapter-button-start-icon img {
+          width: 100% !important;
+          height: 100% !important;
+          border-radius: 0.5rem !important;
+        }
+
+        /* Wallet Name Text */
+        .wallet-adapter-modal-middle {
+          flex: 1 !important;
+          text-align: left !important;
+          font-size: 1rem !important;
+          color: #7c3aed !important;
+          font-weight: 600 !important;
+        }
+
+        /* "Detected" Badge - Beautiful Gradient */
+        .wallet-adapter-modal-list .wallet-adapter-button-end-icon {
+          margin-left: auto !important;
+          background: linear-gradient(135deg, #f9a8d4 0%, #d8b4fe 50%, #c084fc 100%) !important;
+          color: white !important;
+          padding: 0.4rem 1rem !important;
+          border-radius: 9999px !important;
+          font-size: 0.7rem !important;
+          font-weight: 700 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+          flex-shrink: 0 !important;
+          box-shadow: 0 2px 8px rgba(192, 132, 252, 0.4) !important;
+        }
+
+        /* Remove any extra content */
+        .wallet-adapter-modal-list .wallet-adapter-button::after,
+        .wallet-adapter-modal-list .wallet-adapter-button::before {
+          display: none !important;
+          content: none !important;
+        }
+
+        /* Collapse/Expand buttons */
+        .wallet-adapter-collapse {
+          display: none !important;
+        }
+
+        /* Ensure modal is always centered */
+        .wallet-adapter-modal-container {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+
+        /* Remove any margins that might offset the modal */
+        .wallet-adapter-modal-wrapper > * {
+          margin: 0 !important;
         }
       `}</style>
     </div>
