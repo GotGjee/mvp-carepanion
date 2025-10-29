@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Loader2} from "lucide-react";
+import { Loader2, Heart, Mic, Users, Shield, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { login } from "@/services/api";
 import logo from "../assets/carepanion-logo1.png";
 
 interface WalletConnectionGateProps {
-  onWalletConnected: (userData: {
-    address: string;
+  onWalletConnected: (userData: { 
+    address: string; 
     balance: number;
     isNewUser: boolean;
   }) => void;
@@ -18,6 +19,7 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
   const { publicKey, connected } = useWallet();
   const { toast } = useToast();
 
+  // Auto-login when wallet is connected
   useEffect(() => {
     if (connected && publicKey) {
       handleWalletLogin();
@@ -35,29 +37,33 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
     }
 
     setIsConnecting(true);
-
+    
     try {
       const walletAddress = publicKey.toBase58();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // Call backend login API
+      const response = await login(walletAddress);
+      
       toast({
         title: "Login Successful",
-        description: "Welcome back!",
+        description: response.is_new_user 
+          ? "Welcome! Please complete your profile." 
+          : "Welcome back!",
       });
 
+      // Pass user data to parent component
       onWalletConnected({
         address: walletAddress,
-        balance: 0,
-        isNewUser: false
+        balance: 0, // You can fetch real balance from blockchain if needed
+        isNewUser: response.is_new_user
       });
+      
     } catch (error) {
       console.error("Wallet login failed:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Unable to connect to server",
+        description: error instanceof Error ? error.message : "Unable to connect to server",
       });
     } finally {
       setIsConnecting(false);
