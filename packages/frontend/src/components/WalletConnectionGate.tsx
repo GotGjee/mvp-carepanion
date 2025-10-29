@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Loader2, Heart } from "lucide-react";
+import { Loader2} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/carepanion-logo1.png";
 
@@ -67,26 +67,25 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
   return (
     <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 flex items-center justify-center p-6 overflow-auto">
       <div className="w-full max-w-xl my-auto">
-        {/* Main Card - Neomorphic Style with Better Contrast */}
+
         <div className="bg-white/60 backdrop-blur-sm rounded-[3rem] p-12 shadow-[20px_20px_60px_rgba(140,100,180,0.5),-20px_-20px_60px_rgba(255,255,255,0.95)] border-2 border-white/70">
-          {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-pink-200 to-purple-300 rounded-full flex items-center justify-center shadow-[inset_5px_5px_15px_rgba(160,100,200,0.4),inset_-5px_-5px_15px_rgba(255,255,255,0.9)]">
                <img src={logo} alt="Project Logo" className="object-contain w-[130%] h-[130%]"/>
             </div>
           </div>
 
-          {/* Title */}
+ 
           <h1 className="text-4xl font-bold text-center mb-3 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 bg-clip-text text-transparent">
             Carepanion
           </h1>
 
-          {/* Subtitle */}
+
           <p className="text-center text-purple-500 text-sm font-medium mb-8">
             Empathy-Powered Eldercare AI
           </p>
 
-          {/* Description */}
+  
           <div className="bg-white/50 rounded-3xl p-6 mb-8 shadow-[inset_5px_5px_15px_rgba(160,100,200,0.25),inset_-5px_-5px_15px_rgba(255,255,255,0.6)] border border-purple-200/30">
             <h2 className="text-xl font-semibold text-purple-600 mb-3 text-center">
               Help Build Better Eldercare AI
@@ -97,13 +96,13 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
             </p>
           </div>
 
-          {/* Wallet Section */}
+  
           <div className="space-y-4">
             <label className="block text-center text-purple-600 font-semibold text-sm mb-4">
               Connect Your Solana Wallet
             </label>
 
-            {/* Wallet Button Container - Full Width */}
+         
             <div className="w-full flex">
               <div className="relative w-full flex">
                 <div className="absolute -inset-1 bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 rounded-full blur-xl opacity-60"></div>
@@ -126,13 +125,12 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
           </div>
         </div>
 
-        {/* Bottom Text */}
         <p className="text-center text-purple-600/70 text-xs mt-6 font-medium">
           Web3 Data Platform for Eldercare AI Training
         </p>
       </div>
 
-      {/* Custom Wallet Adapter Styles */}
+  
       <style>{`
         /* ===== WALLET BUTTON - FULL WIDTH 100% ===== */
         .wallet-adapter-button-trigger {
@@ -147,9 +145,9 @@ const WalletConnectionGate = ({ onWalletConnected }: WalletConnectionGateProps) 
         }
 
         .wallet-adapter-button {
+          max-width: 281% !important;
           width: 280% !important;
           min-width: 100% !important;
-          max-width: 281% !important;
           flex: 1 !important;
           background: linear-gradient(to right, #f9a8d4, #c084fc, #93c5fd) !important;
           border: none !important;
