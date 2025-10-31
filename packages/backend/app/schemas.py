@@ -46,3 +46,4 @@ class LabelSubmission(BaseModel):
 class LabelResponse(BaseModel):
     status: str = "success"
     label_id: int
+    transaction_signature: Optional[str] = None

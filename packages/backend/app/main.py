@@ -6,6 +6,7 @@ from app.database import init_db, engine
 from app.routers import auth, profile, label
 from sqlalchemy import text
 
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Carepanion API",
