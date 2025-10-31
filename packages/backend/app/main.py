@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.database import init_db, get_db, create_mock_audio_data
+from fastapi.responses import JSONResponse
+from app.database import init_db, engine
 from app.routers import auth, profile, label
+from sqlalchemy import text
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -17,14 +19,20 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://mvp-carepanion.vercel.app"
+        "https://mvp-carepanion.vercel.app",
+        "https://*.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+except RuntimeError:
+    # Static directory doesn't exist, skip mounting
+    pass
 
 # Include routers
 app.include_router(auth.router)
@@ -34,15 +42,14 @@ app.include_router(label.router)
 @app.on_event("startup")
 def startup_event():
     """Initialize database and create mock data on startup"""
-    print("Starting up Carepanion API...")
-    init_db()
+    print("🚀 Starting up Carepanion API...")
     
-    # Create mock audio data
-    # db = next(get_db())
-    # create_mock_audio_data(db)
-    # db.close()
-    
-    print("Carepanion API is ready! 🚀")
+    try:
+        init_db()
+        print("✅ Carepanion API is ready!")
+    except Exception as e:
+        print(f"⚠️  Startup warning: {e}")
+        print("API will continue running, but database may not be available")
 
 @app.get("/")
 def root():
@@ -55,5 +62,24 @@ def root():
 
 @app.get("/health")
 def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """Health check endpoint with database connection test"""
+    try:
+        # Test database connection
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "unhealthy",
+                "database": "disconnected",
+                "error": str(e),
+                "version": "1.0.0"
+            }
+        )

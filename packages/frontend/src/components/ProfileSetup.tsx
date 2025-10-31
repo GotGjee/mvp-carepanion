@@ -165,7 +165,7 @@ const ProfileSetup = ({ walletAddress, onProfileComplete }: ProfileSetupProps) =
                       } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className="text-base">{country.flag}</span>
+                        <span className="text-xl">{country.flag}</span>
                         <span className="font-semibold text-xs truncate">{country.name}</span>
                       </div>
                     </button>
