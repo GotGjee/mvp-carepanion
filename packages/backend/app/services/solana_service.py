@@ -30,10 +30,8 @@ class SolanaService:
             
         self.program_id = Pubkey.from_string(SOLANA_PROGRAM_ID) if SOLANA_PROGRAM_ID else None
         
-        # --- 💡 โหลด treasury keypair จาก ENV variable แทน path 💡 ---
         if TREASURY_PRIVATE_KEY_ENV:
             try:
-                # แปลง JSON array เป็น list ของ int
                 private_key_list = json.loads(TREASURY_PRIVATE_KEY_ENV)
                 self.treasury = Keypair.from_bytes(private_key_list)
                 print(f"✅ Treasury keypair loaded successfully: {self.treasury.pubkey()}")

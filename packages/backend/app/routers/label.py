@@ -56,8 +56,6 @@ async def submit_label(
     Validates, calls the on-chain program, then saves to database
     """
     
-    # --- 1. Validation (เหมือนเดิม) ---
-    # Check if audio file exists
     audio = db.query(AudioFile).filter(AudioFile.id == label.audio_id).first()
     if not audio:
         raise HTTPException(
@@ -65,7 +63,6 @@ async def submit_label(
             detail=f"Audio file with id {label.audio_id} not found"
         )
     
-    # Check if user has already labeled this audio
     existing_label = db.query(Label).filter(
         and_(
             Label.owner_wallet == wallet_address,
@@ -79,7 +76,6 @@ async def submit_label(
             detail="You have already labeled this audio file"
         )
     
-    # --- 💡 2. เรียก Smart Contract ก่อน ---
     try:
         tx_signature = await solana_service.record_label_on_chain(
             user_wallet=wallet_address,
@@ -87,20 +83,17 @@ async def submit_label(
         )
         
         if not tx_signature:
-            # ถ้า solana_service คืนค่า None (แปลว่าล้มเหลว)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to record label on-chain. Service returned no signature."
             )
             
     except Exception as e:
-        # ดักจับ Error อื่นๆ จาก solana_service (เช่น RPC down)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Error communicating with Solana: {str(e)}"
         )
 
-    # --- 💡 3. บันทึกลง Database (เมื่อ On-Chain สำเร็จ) ---
     new_label = Label(
         owner_wallet=wallet_address,
         audio_id=label.audio_id,
