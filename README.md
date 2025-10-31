@@ -233,7 +233,7 @@ carepanion/
 ### Deployment URLs
 - **Frontend**: https://mvp-carepanion.vercel.app
 - **Backend**: https://mvp-carepanion-backend.onrender.com 
-- **Smart Contract**: []
+- **Smart Contract**: [431uCPYwa2niRi2xpsbvrwmS74wC7gyfAfHkGz8VmkvK]
 
 ### Security Considerations
 - JWT tokens expire after 24 hours

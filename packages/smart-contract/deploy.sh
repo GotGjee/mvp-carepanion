@@ -2,8 +2,11 @@
 
 echo "🚀 Building Carepanion Solana Program..."
 
-# Build the program
-cargo build-bpf
+# Clean previous builds
+cargo clean
+
+# Build the program using SBF (new toolchain)
+cargo build-sbf
 
 echo "✅ Build complete!"
 

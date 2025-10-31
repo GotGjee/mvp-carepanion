@@ -12,7 +12,7 @@ use solana_program::{
 };
 
 // Program ID (will be generated after deployment)
-solana_program::declare_id!("11111111111111111111111111111111");
+solana_program::declare_id!("431uCPYwa2niRi2xpsbvrwmS74wC7gyfAfHkGz8VmkvK");
 
 // Entry point
 entrypoint!(process_instruction);
@@ -142,7 +142,7 @@ fn process_record_label(
     user_stats.serialize(&mut &mut user_stats_account.data.borrow_mut()[..])?;
 
     // Transfer reward to user (from program's account or treasury)
-    // Note: For MVP, you'll need to fund the program account manually
+    // Note: For MVP, I fund the program account manually
     // In production, use a treasury PDA
     
     msg!("Label recorded successfully!");
