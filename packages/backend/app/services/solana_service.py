@@ -19,7 +19,7 @@ load_dotenv()
 # Configuration
 SOLANA_RPC_URL = os.getenv("SOLANA_RPC_URL", "https://api.devnet.solana.com")
 SOLANA_PROGRAM_ID = os.getenv("SOLANA_PROGRAM_ID")  
-TREASURY_PRIVATE_KEY_ENV = os.getenv("TREASURY_PRIVATE_KEY")  # ตอนนี้เป็น JSON array
+TREASURY_PRIVATE_KEY_ENV = os.getenv("TREASURY_PRIVATE_KEY") 
 
 class SolanaService:
     def __init__(self):
