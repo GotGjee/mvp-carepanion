@@ -8,11 +8,9 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 solana-program = "=1.18.26"
-solana-sdk = "=1.18.26"
-solana-program-test = "=1.18.26"
-borsh = "0.10.3"
-borsh-derive = "0.10.3"
+borsh = "1.5.1"
 thiserror = "1.0"
+bs58 = "0.5.1"
 
 [dev-dependencies]
 solana-program-test = "=1.18.26"
@@ -27,3 +25,7 @@ codegen-units = 1
 opt-level = 3
 incremental = false
 codegen-units = 1
+
+[features]
+custom-heap = []
+custom-panic = []

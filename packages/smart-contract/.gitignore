@@ -1,0 +1,39 @@
+# Rust / Cargo
+/target/
+**/*.rs.bk
+*.pdb
+
+# Solana
+*.so
+*.so.old
+/deploy/
+
+# Keypairs - NEVER commit these!
+*.json
+!Cargo.toml
+deployer.json
+treasury.json
+authority.json
+program-keypair.json
+wallet.json
+id.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/out/
+/dist/
+*.log
+
+# Test keys (if any)
+/test-ledger/
+/.anchor/

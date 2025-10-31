@@ -6,6 +6,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!**/Cargo.toml
+deployer.json
+treasury.json
+authority.json
+program-keypair.json
+
 **/node_modules
 
 **/dist
