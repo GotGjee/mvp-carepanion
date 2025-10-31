@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.database import get_db
 from app.models import AudioFile, Label
 from app.schemas import AudioResponse, LabelSubmission, LabelResponse
 from app.routers.auth import verify_token
+from app.services.solana_service import solana_service
 
 router = APIRouter(prefix="/api", tags=["Labeling"])
 
@@ -43,16 +44,19 @@ def get_next_audio(
         duration_seconds=audio.duration_seconds
     )
 
+# --- 💡 1. เปลี่ยนเป็น async def ---
 @router.post("/labels", response_model=LabelResponse)
-def submit_label(
+async def submit_label( 
     label: LabelSubmission,
     wallet_address: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     """
     Submit a label for an audio file
-    Validates that audio exists and user hasn't already labeled it
+    Validates, calls the on-chain program, then saves to database
     """
+    
+    # --- 1. Validation (เหมือนเดิม) ---
     # Check if audio file exists
     audio = db.query(AudioFile).filter(AudioFile.id == label.audio_id).first()
     if not audio:
@@ -75,7 +79,28 @@ def submit_label(
             detail="You have already labeled this audio file"
         )
     
-    # Create new label
+    # --- 💡 2. เรียก Smart Contract ก่อน ---
+    try:
+        tx_signature = await solana_service.record_label_on_chain(
+            user_wallet=wallet_address,
+            label_data=label.dict()  # แปลง Pydantic model เป็น dict
+        )
+        
+        if not tx_signature:
+            # ถ้า solana_service คืนค่า None (แปลว่าล้มเหลว)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to record label on-chain. Service returned no signature."
+            )
+            
+    except Exception as e:
+        # ดักจับ Error อื่นๆ จาก solana_service (เช่น RPC down)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Error communicating with Solana: {str(e)}"
+        )
+
+    # --- 💡 3. บันทึกลง Database (เมื่อ On-Chain สำเร็จ) ---
     new_label = Label(
         owner_wallet=wallet_address,
         audio_id=label.audio_id,
@@ -83,7 +108,8 @@ def submit_label(
         clarity=label.clarity,
         speaking_rate=label.speaking_rate,
         perceived_empathy=label.perceived_empathy,
-        notes=label.notes
+        notes=label.notes,
+        transaction_hash=tx_signature  
     )
     
     db.add(new_label)
@@ -92,5 +118,6 @@ def submit_label(
     
     return LabelResponse(
         status="success",
-        label_id=new_label.id
+        label_id=new_label.id,
+        transaction_signature=tx_signature
     )

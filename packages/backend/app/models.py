@@ -32,3 +32,4 @@ class Label(Base):
     speaking_rate = Column(Text, nullable=True)
     perceived_empathy = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
+    transaction_hash = Column(Text, nullable=True, index=True)
