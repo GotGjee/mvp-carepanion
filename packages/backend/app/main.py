@@ -61,7 +61,7 @@ def root():
         "status": "running"
     }
 
-@app.get("/health")
+@app.head("/health")
 def health_check():
     """Health check endpoint with database connection test"""
     try:
@@ -85,8 +85,3 @@ def health_check():
             }
         )
     
-@app.head("/")
-def health_check():
-    return {
-        "status": "running",
-    }
