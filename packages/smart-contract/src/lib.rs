@@ -20,7 +20,13 @@ entrypoint!(process_instruction);
 // Instructions
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub enum CarepanionInstruction {
-
+    /// Record a label submission
+    /// 
+    /// Accounts expected:
+    /// 0. `[writable, signer]` User account (payer)
+    /// 1. `[writable]` User stats account (PDA)
+    /// 2. `[]` System program
+    /// 3. `[]` Clock sysvar
     RecordLabel {
         label_hash: [u8; 32],  // Hash of the label data
         audio_id: u64,          // Audio file ID from backend
