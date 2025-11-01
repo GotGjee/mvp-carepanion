@@ -6,5 +6,5 @@ python-dotenv==1.0.0
 pydantic==2.5.0
 PyJWT==2.8.0
 python-multipart==0.0.6
-solana==0.34.3
-solders==0.21.0
+solana==0.32.0
+solders==0.18.1
