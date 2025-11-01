@@ -2,6 +2,7 @@ import json
 import os
 import hashlib
 import pkg_resources
+import struct
 from solana.rpc.types import TxOpts
 from typing import Optional
 from solana.rpc.async_api import AsyncClient
