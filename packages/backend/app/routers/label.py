@@ -44,73 +44,72 @@ def get_next_audio(
         duration_seconds=audio.duration_seconds
     )
 
-# --- 💡 1. เปลี่ยนเป็น async def ---
 @router.post("/labels", response_model=LabelResponse)
-async def submit_label( 
+async def submit_label(
     label: LabelSubmission,
     wallet_address: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
-    """
-    Submit a label for an audio file
-    Validates, calls the on-chain program, then saves to database
-    """
-    
-    audio = db.query(AudioFile).filter(AudioFile.id == label.audio_id).first()
-    if not audio:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Audio file with id {label.audio_id} not found"
-        )
-    
-    existing_label = db.query(Label).filter(
-        and_(
-            Label.owner_wallet == wallet_address,
-            Label.audio_id == label.audio_id
-        )
-    ).first()
-    
-    if existing_label:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already labeled this audio file"
-        )
-    
     try:
+        audio = db.query(AudioFile).filter(AudioFile.id == label.audio_id).first()
+        if not audio:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Audio file with id {label.audio_id} not found"
+            )
+
+        existing_label = db.query(Label).filter(
+            and_(
+                Label.owner_wallet == wallet_address,
+                Label.audio_id == label.audio_id
+            )
+        ).first()
+
+        if existing_label:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You have already labeled this audio file"
+            )
+
         tx_signature = await solana_service.record_label_on_chain(
             user_wallet=wallet_address,
-            label_data=label.dict()  # แปลง Pydantic model เป็น dict
+            label_data=label.dict()
         )
-        
+
         if not tx_signature:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to record label on-chain. Service returned no signature."
             )
-            
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Error communicating with Solana: {str(e)}"
+
+        new_label = Label(
+            owner_wallet=wallet_address,
+            audio_id=label.audio_id,
+            comfort_level=label.comfort_level,
+            clarity=label.clarity,
+            speaking_rate=label.speaking_rate,
+            perceived_empathy=label.perceived_empathy,
+            notes=label.notes,
+            transaction_hash=tx_signature
         )
 
-    new_label = Label(
-        owner_wallet=wallet_address,
-        audio_id=label.audio_id,
-        comfort_level=label.comfort_level,
-        clarity=label.clarity,
-        speaking_rate=label.speaking_rate,
-        perceived_empathy=label.perceived_empathy,
-        notes=label.notes,
-        transaction_hash=tx_signature  
-    )
-    
-    db.add(new_label)
-    db.commit()
-    db.refresh(new_label)
-    
-    return LabelResponse(
-        status="success",
-        label_id=new_label.id,
-        transaction_signature=tx_signature
-    )
+        db.add(new_label)
+        db.commit()
+        db.refresh(new_label)
+
+        return LabelResponse(
+            status="success",
+            label_id=new_label.id,
+            transaction_signature=tx_signature
+        )
+
+    except HTTPException:
+        raise  
+    except Exception as e:
+        db.rollback() 
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error: {str(e)}"
+        )
+    finally:
+        db.close()  
