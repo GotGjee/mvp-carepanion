@@ -84,3 +84,9 @@ def health_check():
                 "version": "1.0.0"
             }
         )
+    
+@app.head("/")
+def health_check():
+    return {
+        "status": "running",
+    }
