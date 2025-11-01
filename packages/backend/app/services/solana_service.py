@@ -91,12 +91,12 @@ class SolanaService:
             recent_blockhash_resp = await self.client.get_latest_blockhash()
             recent_blockhash = recent_blockhash_resp.value.blockhash
             
-            transaction = Transaction.new_signed_with_payer(
+            transaction = Transaction.new_with_payer(
                 instructions=[instruction],
                 payer=self.treasury.pubkey(),
-                signing_keypairs=[self.treasury],
-                recent_blockhash=recent_blockhash
             )
+            transaction.message.recent_blockhash = recent_blockhash
+            transaction.sign([self.treasury])
             
             response = await self.client.send_transaction(transaction, opts=TxOpts(skip_preflight=True))
             signature = response.value
