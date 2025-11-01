@@ -41,27 +41,45 @@ def get_db():
     """Database session dependency with automatic retry"""
     max_retries = 3
     retry_delay = 1
+    db = None
     
-    for attempt in range(max_retries):
-        db = None
-        try:
-            db = SessionLocal()
-            yield db
-            return
-        except Exception as e:
-            if db:
+    try:
+        for attempt in range(max_retries):
+            try:
+                db = SessionLocal()
+                yield db
+                break  # Success - exit loop
+            except Exception as e:
+                if db:
+                    db.rollback()
+                    db.close()
+                    db = None
+                
+                if attempt < max_retries - 1:
+                    print(f"⚠️  DB connection failed (attempt {attempt + 1}/{max_retries}), retrying in {retry_delay}s...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    print(f"❌ DB connection failed after {max_retries} attempts: {e}")
+                    raise
+    except GeneratorExit:
+        # Handle generator cleanup
+        if db:
+            db.close()
+        raise
+    except Exception:
+        # Handle other exceptions
+        if db:
+            db.rollback()
+            db.close()
+        raise
+    finally:
+        # Final cleanup
+        if db:
+            try:
                 db.close()
-            
-            if attempt < max_retries - 1:
-                print(f"⚠️  DB connection failed (attempt {attempt + 1}/{max_retries}), retrying in {retry_delay}s...")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-            else:
-                print(f"❌ DB connection failed after {max_retries} attempts: {e}")
-                raise e
-        finally:
-            if db:
-                db.close()
+            except:
+                pass
 
 # Initialize database tables
 def init_db():
