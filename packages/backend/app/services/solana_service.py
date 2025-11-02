@@ -3,42 +3,39 @@ import os
 import hashlib
 import pkg_resources
 import struct
-from solana.rpc.types import TxOpts
 from typing import Optional
 from solana.rpc.async_api import AsyncClient
-from solana.rpc.commitment import Confirmed
 from solders.pubkey import Pubkey
 from solders.keypair import Keypair
-from solders.system_program import TransferParams, transfer
-from solders.transaction import Transaction
+from solders.transaction import VersionedTransaction
 from solders.instruction import Instruction, AccountMeta
 from solders.hash import Hash
+from solders.message import Message
 from dotenv import load_dotenv
+from solana.rpc.types import TxOpts
+from solana.rpc.commitment import Confirmed
 
 print("Solders version:", pkg_resources.get_distribution("solders").version)
 print("Solana version:", pkg_resources.get_distribution("solana").version)
 load_dotenv()
 
-# Configuration
 SOLANA_RPC_URL = os.getenv("SOLANA_RPC_URL", "https://api.devnet.solana.com")
-SOLANA_PROGRAM_ID = os.getenv("SOLANA_PROGRAM_ID")  
-TREASURY_PRIVATE_KEY_ENV = os.getenv("TREASURY_PRIVATE_KEY")  # ตอนนี้เป็น JSON array
+SOLANA_PROGRAM_ID = os.getenv("SOLANA_PROGRAM_ID")
+TREASURY_PRIVATE_KEY_ENV = os.getenv("TREASURY_PRIVATE_KEY") 
 
 class SolanaService:
     def __init__(self):
         self.client = AsyncClient(SOLANA_RPC_URL, commitment=Confirmed)
-        
+
         if not SOLANA_PROGRAM_ID:
             print("⚠️ Solana Program ID not configured")
-            
+
         self.program_id = Pubkey.from_string(SOLANA_PROGRAM_ID) if SOLANA_PROGRAM_ID else None
-        
-        # --- 💡 โหลด treasury keypair จาก ENV variable แทน path 💡 ---
+
         if TREASURY_PRIVATE_KEY_ENV:
             try:
-                # แปลง JSON array เป็น list ของ int
                 private_key_list = json.loads(TREASURY_PRIVATE_KEY_ENV)
-                self.treasury = Keypair.from_bytes(private_key_list)
+                self.treasury = Keypair.from_bytes(bytes(private_key_list))
                 print(f"✅ Treasury keypair loaded successfully: {self.treasury.pubkey()}")
             except Exception as e:
                 print(f"❌ FAILED TO LOAD TREASURY KEYPAIR from ENV variable")
@@ -49,18 +46,18 @@ class SolanaService:
             self.treasury = Keypair()
             print(f"⚠️ Generated new treasury keypair: {self.treasury.pubkey()}")
             print(f"   Please fund this account on devnet")
-    
+
     def generate_label_hash(self, label_data: dict) -> bytes:
         """Generate SHA-256 hash of label data"""
         data_string = f"{label_data['audio_id']}{label_data['comfort_level']}{label_data['clarity']}{label_data['speaking_rate']}{label_data['perceived_empathy']}{label_data.get('notes', '')}"
         return hashlib.sha256(data_string.encode()).digest()
-    
+
     def derive_user_stats_pda(self, user_pubkey: Pubkey) -> tuple[Pubkey, int]:
         """Derive PDA for user stats account"""
         seeds = [b"user_stats", bytes(user_pubkey)]
         pda, bump = Pubkey.find_program_address(seeds, self.program_id)
         return pda, bump
-    
+
     async def record_label_on_chain(
         self,
         user_wallet: str,
@@ -71,13 +68,14 @@ class SolanaService:
             if not self.program_id:
                 print("⚠️  Solana Program ID not configured")
                 return None
-            
+
             user_pubkey = Pubkey.from_string(user_wallet)
             label_hash = self.generate_label_hash(label_data)
             user_stats_pda, _ = self.derive_user_stats_pda(user_pubkey)
-            
+
+            # ✅ Build instruction
             instruction_data = struct.pack('B', 0) + label_hash + struct.pack('<Q', label_data['audio_id'])
-            
+
             instruction = Instruction(
                 program_id=self.program_id,
                 data=instruction_data,
@@ -88,27 +86,36 @@ class SolanaService:
                     AccountMeta(pubkey=Pubkey.from_string("SysvarC1ock11111111111111111111111111111111"), is_signer=False, is_writable=False),
                 ]
             )
-            
+
             recent_blockhash_resp = await self.client.get_latest_blockhash()
-            recent_blockhash = recent_blockhash_resp.value.blockhash
-            
-            transaction = Transaction.new_with_payer(
-                instructions=[instruction],
-                payer=self.treasury.pubkey(),
+            recent_blockhash = Hash.from_string(str(recent_blockhash_resp.value.blockhash))
+
+            message = Message.new_with_blockhash(
+                [instruction],
+                self.treasury.pubkey(),
+                recent_blockhash
             )
-            transaction.message.recent_blockhash = recent_blockhash
-            transaction.sign([self.treasury])
-            
-            response = await self.client.send_transaction(transaction, opts=TxOpts(skip_preflight=True))
+            transaction = VersionedTransaction(message=message,keypairs=[self.treasury] )
+
+            opts = TxOpts(
+              skip_preflight=True,
+              preflight_commitment=Confirmed  
+            )
+
+            response = await self.client.send_transaction(
+              transaction,
+              opts=opts  
+            )
+
             signature = response.value
-            
             print(f"✅ Label recorded on-chain: {signature}")
+            print(f"🔗 View on Explorer: https://explorer.solana.com/tx/{signature}?cluster=devnet")
             return str(signature)
-            
+
         except Exception as e:
             print(f"❌ Error recording label on-chain: {e}")
             return None
-    
+
     async def close(self):
         """Close the RPC client"""
         await self.client.close()
